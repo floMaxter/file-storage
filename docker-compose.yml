@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  file-storage-postgres-db:
+    image: postgres:15-alpine
+    container_name: file-storage-postgres-db
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - file-storage-network
+
+volumes:
+  postgres-data:
+
+networks:
+  file-storage-network:
+    driver: bridge
+
+
