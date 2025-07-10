@@ -18,4 +18,5 @@ logs/
 *.out
 
 # Environment variables
-.env
+.env*
+!.env.dev
