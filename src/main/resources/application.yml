@@ -10,6 +10,9 @@ spring:
     properties.hibernate:
       show_sql: true
       format_sql: true
+      default_schema: ${POSTGRES_SCHEMA}
+  flyway:
+    schemas: ${POSTGRES_SCHEMA}
 server:
   servlet:
     session:
@@ -18,7 +21,6 @@ server:
         name: JSESSIONID
         http-only: true
         secure: false
-
 logging:
   level:
     root: info

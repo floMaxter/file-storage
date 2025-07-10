@@ -37,7 +37,7 @@ public class User implements BaseEntity<Long> {
     private String username;
 
     @NotBlank(message = "Password should not be empty")
-    @Size(max = 50, message = "Password should be less than 50 character")
+    @Size(max = 100, message = "Password should be less than 50 character")
     private String password;
 
     @ManyToMany

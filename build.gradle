@@ -29,6 +29,9 @@ dependencies {
 	// Database
 	runtimeOnly 'org.postgresql:postgresql'
 
+	// Migration
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
 	// Tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
