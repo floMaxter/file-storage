@@ -1,6 +1,7 @@
 package com.projects.filestorage.service;
 
 import com.projects.filestorage.config.SessionProperties;
+import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
 import com.projects.filestorage.repository.UserRepository;
 import com.projects.filestorage.web.dto.request.SignInRequestDto;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,7 +49,8 @@ public class AuthService {
         user.addRole(roleService.getDefaultUserRole());
         userRepository.save(user);
 
-        signIn(new SignInRequestDto(signUpRequestDto.username(), signUpRequestDto.password()), request, response);
+        var signInRequestDto = new SignInRequestDto(signUpRequestDto.username(), signUpRequestDto.password());
+        signIn(signInRequestDto, request, response);
 
         return userMapper.toSignInResponseDto(user);
     }
@@ -71,6 +74,11 @@ public class AuthService {
     }
 
     public void signOut(HttpServletRequest request, HttpServletResponse response) {
+        var authenticated = securityContextHolderStrategy.getContext().getAuthentication();
+        if (authenticated == null || !authenticated.isAuthenticated() || authenticated instanceof AnonymousAuthenticationToken) {
+            throw new UnauthenticatedAccessException("User must be authenticated to sign out.");
+        }
+
         securityContextHolderStrategy.clearContext();
         var session = request.getSession(false);
         if (session != null) {

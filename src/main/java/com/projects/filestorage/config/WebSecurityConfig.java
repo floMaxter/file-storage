@@ -1,5 +1,7 @@
 package com.projects.filestorage.config;
 
+import com.projects.filestorage.security.CustomAccessDeniedHandler;
+import com.projects.filestorage.security.CustomAuthenticationEntryPoint;
 import com.projects.filestorage.service.DefaultUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +22,8 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class WebSecurityConfig {
 
     private final DefaultUserDetailsService defaultUserDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
@@ -36,6 +40,9 @@ public class WebSecurityConfig {
                 .userDetailsService(defaultUserDetailsService)
                 .securityContext(context -> context
                         .securityContextRepository(securityContextRepository()))
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 .build();
     }
 
@@ -53,4 +60,6 @@ public class WebSecurityConfig {
     public SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
     }
+
+
 }

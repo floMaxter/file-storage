@@ -7,6 +7,7 @@ import com.projects.filestorage.web.dto.response.SignInResponseDto;
 import com.projects.filestorage.web.dto.response.SignUpResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,7 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.OK)
-    public SignUpResponseDto signUp(@RequestBody SignUpRequestDto signUpRequestDto,
+    public SignUpResponseDto signUp(@Valid @RequestBody SignUpRequestDto signUpRequestDto,
                                     HttpServletRequest request,
                                     HttpServletResponse response) {
         return authService.signUp(signUpRequestDto, request, response);
@@ -32,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/sign-in")
     @ResponseStatus(HttpStatus.CREATED)
-    public SignInResponseDto signIn(@RequestBody SignInRequestDto signInRequestDto,
+    public SignInResponseDto signIn(@Valid @RequestBody SignInRequestDto signInRequestDto,
                                     HttpServletRequest request,
                                     HttpServletResponse response) {
         return authService.signIn(signInRequestDto, request, response);
