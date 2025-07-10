@@ -6,6 +6,7 @@ import com.projects.filestorage.service.DefaultUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,10 +34,19 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .requestCache(RequestCacheConfigurer::disable)
                 .authorizeHttpRequests(authRequest -> authRequest
-                        .requestMatchers("/api/auth/sign-in").anonymous()
-                        .requestMatchers("/api/auth/sign-up").anonymous()
-                        .requestMatchers("/api/auth/sign-out").authenticated()
-                        .anyRequest().authenticated())
+                        .requestMatchers(HttpMethod.POST, "/api/auth/sign-in").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/sign-up").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/sign-out").authenticated()
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/config.js",
+                                "/assets/**",
+                                "/login",
+                                "/registration",
+                                "/files/**"
+                        ).permitAll()
+                        .requestMatchers("/api/**").authenticated())
                 .userDetailsService(defaultUserDetailsService)
                 .securityContext(context -> context
                         .securityContextRepository(securityContextRepository()))

@@ -32,9 +32,7 @@ public class AuthService {
     public SignUpResponseDto signUp(SignUpRequestDto signUpRequestDto,
                                     HttpServletRequest request,
                                     HttpServletResponse response) {
-        if (userRepository.findByUsername(signUpRequestDto.username()).isPresent()) {
-            throw new UserAlreadyExistsException(String.format("User with username %s already exists", signUpRequestDto.username()));
-        }
+        validateUsernameUniqueness(signUpRequestDto.username());
 
         var user = userMapper.toEntity(signUpRequestDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -58,12 +56,21 @@ public class AuthService {
     }
 
     public void signOut(HttpServletRequest request, HttpServletResponse response) {
-        if (!securityContextManager.isAuthenticated()) {
-            throw new UnauthenticatedAccessException("User must be authenticated to sign out");
-        }
-
+        validateAuthentication();
         securityContextManager.clearContext();
         sessionManager.invalidateSession(request);
         sessionManager.expireSessionCookie(response);
+    }
+
+    private void validateUsernameUniqueness(String username) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new UserAlreadyExistsException(String.format("User with username %s already exists", username));
+        }
+    }
+
+    private void validateAuthentication() {
+        if (!securityContextManager.isAuthenticated()) {
+            throw new UnauthenticatedAccessException("User must be authenticated to sign out");
+        }
     }
 }
