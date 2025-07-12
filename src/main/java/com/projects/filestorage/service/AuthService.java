@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final UserService userService;
     private final UserRepository userRepository;
     private final UserRoleService roleService;
     private final PasswordEncoder passwordEncoder;
@@ -34,13 +35,15 @@ public class AuthService {
     public SignUpResponseDto signUp(SignUpRequestDto signUpRequestDto,
                                     HttpServletRequest request,
                                     HttpServletResponse response) {
-        validateUsernameUniqueness(signUpRequestDto.username());
-
-        var user = userMapper.toEntity(signUpRequestDto);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.addRole(roleService.getDefaultUserRole());
-        userRepository.save(user);
-
+//        validateUsernameUniqueness(signUpRequestDto.username());
+//
+//        var user = userMapper.toEntity(signUpRequestDto);
+//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+//        user.addRole(roleService.getDefaultUserRole());
+//        userRepository.save(user);
+        
+        var user = userService.createUser(signUpRequestDto.username(),
+                passwordEncoder.encode(signUpRequestDto.password()));
         authenticateAndStartSession(signUpRequestDto.username(), signUpRequestDto.password(), request, response);
 
         return userMapper.toSignInResponseDto(user);
@@ -70,11 +73,11 @@ public class AuthService {
         sessionManager.expireSessionCookie(response);
     }
 
-    private void validateUsernameUniqueness(String username) {
-        if (userRepository.findByUsername(username).isPresent()) {
-            throw new UserAlreadyExistsException(String.format("User with username %s already exists", username));
-        }
-    }
+//    private void validateUsernameUniqueness(String username) {
+//        if (userRepository.findByUsername(username).isPresent()) {
+//            throw new UserAlreadyExistsException(String.format("User with username %s already exists", username));
+//        }
+//    }
 
     private void validateAuthentication() {
         if (!securityContextManager.isAuthenticated()) {
