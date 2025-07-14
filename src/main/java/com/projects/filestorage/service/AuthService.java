@@ -1,8 +1,6 @@
 package com.projects.filestorage.service;
 
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
-import com.projects.filestorage.exception.UserAlreadyExistsException;
-import com.projects.filestorage.repository.UserRepository;
 import com.projects.filestorage.security.context.SecurityContextManager;
 import com.projects.filestorage.security.session.SessionManager;
 import com.projects.filestorage.web.dto.request.SignInRequestDto;
@@ -24,8 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserService userService;
-    private final UserRepository userRepository;
-    private final UserRoleService roleService;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final SessionManager sessionManager;
@@ -35,13 +31,6 @@ public class AuthService {
     public SignUpResponseDto signUp(SignUpRequestDto signUpRequestDto,
                                     HttpServletRequest request,
                                     HttpServletResponse response) {
-//        validateUsernameUniqueness(signUpRequestDto.username());
-//
-//        var user = userMapper.toEntity(signUpRequestDto);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
-//        user.addRole(roleService.getDefaultUserRole());
-//        userRepository.save(user);
-        
         var user = userService.createUser(signUpRequestDto.username(),
                 passwordEncoder.encode(signUpRequestDto.password()));
         authenticateAndStartSession(signUpRequestDto.username(), signUpRequestDto.password(), request, response);
@@ -72,12 +61,6 @@ public class AuthService {
         sessionManager.invalidateSession(request);
         sessionManager.expireSessionCookie(response);
     }
-
-//    private void validateUsernameUniqueness(String username) {
-//        if (userRepository.findByUsername(username).isPresent()) {
-//            throw new UserAlreadyExistsException(String.format("User with username %s already exists", username));
-//        }
-//    }
 
     private void validateAuthentication() {
         if (!securityContextManager.isAuthenticated()) {
