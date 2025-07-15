@@ -33,11 +33,11 @@ public class User implements BaseEntity<Long> {
     private Long id;
 
     @NotBlank(message = "Username should not be empty")
-    @Size(max = 50, message = "Username should be less than 50 character")
+    @Size(min = 5, max = 20, message = "Username should be more than 5 and less than 20 character")
     private String username;
 
     @NotBlank(message = "Password should not be empty")
-    @Size(max = 100, message = "Password should be less than 50 character")
+    @Size(min = 5, max = 100, message = "Password should be more than 5 and less than 100 character")
     private String password;
 
     @ManyToMany
@@ -45,6 +45,12 @@ public class User implements BaseEntity<Long> {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        roles = new HashSet<>();
+    }
 
     public void addRole(Role role) {
         roles.add(role);

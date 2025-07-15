@@ -11,6 +11,7 @@ spring:
       show_sql: true
       format_sql: true
       default_schema: ${POSTGRES_SCHEMA}
+    open-in-view: false
   flyway:
     schemas: ${POSTGRES_SCHEMA}
 
