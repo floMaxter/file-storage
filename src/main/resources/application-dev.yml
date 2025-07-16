@@ -1,3 +1,13 @@
+server:
+  servlet:
+    session:
+      timeout: 3600
+      cookie:
+        name: JSESSIONID
+        http-only: true
+        secure: false
+  port: 8080
+
 spring:
   config:
     import: optional:file:.env.dev[.properties]
@@ -15,15 +25,11 @@ spring:
   flyway:
     schemas: ${POSTGRES_SCHEMA}
 
-server:
-  servlet:
-    session:
-      timeout: 3600
-      cookie:
-        name: JSESSIONID
-        http-only: true
-        secure: false
-  port: 8080
+minio:
+  endpoint: http://${MINIO_HOST}:${MINIO_PORT}
+  access-key: ${MINIO_ROOT_USER}
+  secret-key: ${MINIO_ROOT_PASSWORD}
+  bucket-name: ${MINIO_BUCKET_NAME}
 
 logging:
   level:
