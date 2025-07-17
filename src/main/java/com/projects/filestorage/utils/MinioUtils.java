@@ -1,36 +1,24 @@
 package com.projects.filestorage.utils;
 
+import io.minio.errors.ErrorResponseException;
 import lombok.experimental.UtilityClass;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @UtilityClass
 public class MinioUtils {
 
     public String extractResourceName(String path) {
-        var resourceName = Arrays.asList(path.split("/")).getLast();
-        return isFile(path) ? resourceName : resourceName.concat("/");
+        var lastSlash = path.lastIndexOf("/");
+        if (lastSlash == -1 || lastSlash == path.length() - 1) return "";
+        return path.substring(lastSlash + 1);
     }
 
     public String extractPath(String path) {
-        var splitPath = new ArrayList<>(List.of(path.split("/")));
-        if (splitPath.isEmpty()) {
-            return "/";
-        }
-
-        splitPath.removeLast();
-
-        var joinedPath = String.join("/", splitPath);
-        return joinedPath.isBlank() ? "/" : joinedPath + "/";
+        var lastSlash = path.lastIndexOf("/");
+        if (lastSlash <= 0) return "/";
+        return path.substring(0, lastSlash + 1);
     }
 
-    public boolean isFile(String path) {
-        return !path.endsWith("/");
-    }
-
-    public boolean isDirectory(String path) {
-        return path.endsWith("/");
+    public boolean isNoSuchKey(ErrorResponseException ex) {
+        return ex.errorResponse().code().equals("NoSuchKey");
     }
 }
