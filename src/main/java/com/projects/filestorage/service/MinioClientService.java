@@ -82,7 +82,7 @@ public class MinioClientService {
                     .bucket(minioClientProperties.getBucketName())
                     .object(path)
                     .build());
-            return true;
+            return !path.endsWith("/");
         } catch (ErrorResponseException ex) {
             if (MinioUtils.isNoSuchKey(ex)) {
                 return false;
@@ -99,6 +99,10 @@ public class MinioClientService {
     }
 
     private boolean isDirectory(String path) {
+        if (!path.endsWith("/")) {
+            return false;
+        }
+
         try {
             var prefix = path.endsWith("/") ? path : path + "/";
             var objectsIterable = minioClient.listObjects(ListObjectsArgs.builder()
