@@ -104,10 +104,9 @@ public class MinioClientService {
         }
 
         try {
-            var prefix = path.endsWith("/") ? path : path + "/";
             var objectsIterable = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
-                    .prefix(prefix)
+                    .prefix(path)
                     .delimiter("/")
                     .recursive(false)
                     .build());
