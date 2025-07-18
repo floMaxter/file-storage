@@ -38,7 +38,7 @@ public class MinioClientService {
     public ResourceInfoDto getResourceInfo(String path) {
         log.info("Resolving resource info for path '{}'", path);
 
-        var pathToResource = MinioUtils.extractPath(path);
+        var pathToResource = MinioUtils.extractParentPath(path);
         var resourceName = MinioUtils.extractResourceName(path);
         var resourceType = resolveResourceType(path);
 
@@ -143,7 +143,7 @@ public class MinioClientService {
     }
 
     private void ensureDirectoryPlaceholder(String path) {
-        var prefix = MinioUtils.extractPath(path);
+        var prefix = MinioUtils.extractParentPath(path);
         try {
             var objectsIterable = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())

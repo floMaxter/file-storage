@@ -3,19 +3,30 @@ package com.projects.filestorage.utils;
 import io.minio.errors.ErrorResponseException;
 import lombok.experimental.UtilityClass;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @UtilityClass
 public class MinioUtils {
 
     public String extractResourceName(String path) {
-        var lastSlash = path.lastIndexOf("/");
-        if (lastSlash == -1 || lastSlash == path.length() - 1) return "";
-        return path.substring(lastSlash + 1);
+        if (path.isBlank()) return "";
+
+        var segments = new ArrayList<>(List.of(path.split("/")));
+        if (segments.size() == 1) return path;
+
+        String last = segments.getLast();
+        return path.endsWith("/") ? last + "/" : last;
     }
 
-    public String extractPath(String path) {
-        var lastSlash = path.lastIndexOf("/");
-        if (lastSlash <= 0) return "/";
-        return path.substring(0, lastSlash + 1);
+    public String extractParentPath(String path) {
+        if (path.isBlank()) return "";
+
+        var segments = new ArrayList<>(List.of(path.split("/")));
+        if (segments.size() <= 1) return "";
+
+        segments.removeLast();
+        return String.join("/", segments) + "/";
     }
 
     public boolean isNoSuchKey(ErrorResponseException ex) {
