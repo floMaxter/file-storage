@@ -62,11 +62,7 @@ public class MinioClientService {
     public List<ResourceInfoDto> getDirectoryInfo(String path) {
         log.info("Resolving directory info for path '{}'", path);
 
-        if (!isDirectory(path)) {
-            log.info("The folder on the path '{}' was not found", path);
-            throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
-        }
-
+        validateIsDirectory(path);
         try {
             var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
@@ -287,6 +283,12 @@ public class MinioClientService {
             log.error("Unexpected error while getting resource size of '{}'", path, ex);
             throw new MinioAccessException(String.format("Unexpected error when determining the file size '%s'",
                     path), ex);
+        }
+    }
+    private void validateIsDirectory(String path) {
+        if (!isDirectory(path)) {
+            log.info("The folder on the path '{}' was not found", path);
+            throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
         }
     }
 }
