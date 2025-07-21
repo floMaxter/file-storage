@@ -10,15 +10,29 @@ public class MinioUtilsTest {
 
     @ParameterizedTest(name = "extractResourceName(\"{0}\" => \"{1}\"")
     @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#resourceNameExtractionData")
-    public void extractResourceName_EmptyPath_ShouldReturnEmptyName(String path, String expectedName) {
+    public void extractResourceName_ValidPath_ShouldReturnEmptyName(String path, String expectedName) {
         var extractResourceName = MinioUtils.extractResourceName(path);
         assertThat(extractResourceName).isEqualTo(expectedName);
     }
 
     @ParameterizedTest(name = "extractParentPath(\"{0}\" => \"{1}\"")
     @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#parentPathExtractionData")
-    public void extractParentPath_ShouldReturnExpectedParent(String path, String expectedParent) {
+    public void extractParentPath_ValidPath_ShouldReturnExpectedParent(String path, String expectedParent) {
         var extractParentPath = MinioUtils.extractParentPath(path);
         assertThat(extractParentPath).isEqualTo(expectedParent);
+    }
+
+    @ParameterizedTest(name = "Validate path: (\"{0}\")")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#getValidPath")
+    public void isValidPathFormat_ValidPath_ShouldReturnTrue(String path) {
+        var result = MinioUtils.isValidPathFormat(path);
+        assertThat(result).isTrue();
+    }
+
+    @ParameterizedTest(name = "Validate directory path: (\"{0}\")")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#getValidDirectoryPath")
+    public void isValidDirectoryPathFormat_ValidPath_ShouldReturnTrue(String path) {
+        var result = MinioUtils.isValidDirectoryPathFormat(path);
+        assertThat(result).isTrue();
     }
 }

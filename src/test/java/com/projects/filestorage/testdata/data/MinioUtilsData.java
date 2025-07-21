@@ -27,4 +27,38 @@ public class MinioUtilsData {
                 Arguments.of("test/inner/2.txt", "test/inner/")
         );
     }
+
+    public static Stream<String> getValidPath() {
+        return Stream.of(
+                "",
+                "_",
+                ".",
+                "-",
+                "file",
+                "файл",
+                "file.txt",
+                "файл.txt",
+                "directory/",
+                "папка/",
+                "directory/file",
+                "папка/файл",
+                "directory/file.txt",
+                "папка/файл.txt",
+                "directory/inner-directory/",
+                "папка/вложенная-папка/",
+                "directory/inner-directory/file",
+                "папка/вложенная-папка/файл",
+                "directory/inner-directory/file.txt",
+                "папка/вложенная-папка/файл.txt"
+        );
+    }
+
+    public static Stream<String> getValidDirectoryPath() {
+        return Stream.of(
+                "directory/",
+                "папка/",
+                "directory/inner-directory/",
+                "папка/вложенная-папка/"
+        );
+    }
 }
