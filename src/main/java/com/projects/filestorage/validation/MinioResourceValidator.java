@@ -1,0 +1,121 @@
+package com.projects.filestorage.validation;
+
+import com.projects.filestorage.config.MinioClientProperties;
+import com.projects.filestorage.exception.DirectoryNotFoundException;
+import com.projects.filestorage.exception.InvalidResourcePathFormatException;
+import com.projects.filestorage.exception.MinioAccessException;
+import com.projects.filestorage.exception.ResourceAlreadyExistsException;
+import com.projects.filestorage.exception.ResourceNotFoundException;
+import com.projects.filestorage.utils.MinioUtils;
+import io.minio.ListObjectsArgs;
+import io.minio.MinioClient;
+import io.minio.StatObjectArgs;
+import io.minio.errors.ErrorResponseException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class MinioResourceValidator {
+
+    private final MinioClient minioClient;
+    private final MinioClientProperties minioClientProperties;
+
+    public boolean isFile(String path) {
+        try {
+            minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .object(path)
+                    .build());
+            return !path.endsWith("/");
+        } catch (ErrorResponseException ex) {
+            if (MinioUtils.isNoSuchKey(ex)) {
+                return false;
+            }
+            log.info("MinIO responded with error while checking if path '{}' is a file: {}",
+                    path, ex.errorResponse().code());
+            throw new MinioAccessException(String.format("MinIO error when checking for file at path '%s'. Error code: %s",
+                    path, ex.errorResponse().code()), ex);
+        } catch (Exception ex) {
+            log.error("Unexpected error occurred while checking if path '{}' is a file", path, ex);
+            throw new MinioAccessException(String.format("Unexpected error while verifying file at path '%s'",
+                    path), ex);
+        }
+    }
+
+    public boolean isDirectory(String path) {
+        if (!path.endsWith("/")) {
+            return false;
+        }
+
+        try {
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(path)
+                    .delimiter("/")
+                    .recursive(false)
+                    .build());
+
+            return objectItems.iterator().hasNext();
+        } catch (Exception ex) {
+            log.error("Unexpected error occurred while checking if path '{}' is a directory", path, ex);
+            throw new MinioAccessException(String.format("Unexpected error while verifying directory at path '%s'",
+                    path), ex);
+        }
+    }
+
+    public boolean isDirectoryExists(String path) {
+        if (!path.endsWith("/")) {
+            return false;
+        }
+
+        try {
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(path)
+                    .delimiter("/")
+                    .recursive(false)
+                    .build());
+            return objectItems.iterator().hasNext();
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public void validateCreateEmptyDirectoryConstraints(String path) {
+        validateDirectoryPathFormat(path);
+        validateParentExists(MinioUtils.extractParentPath(path));
+        validateNotExists(path);
+    }
+
+    public void validateIsDirectory(String path) {
+        if (!isDirectory(path)) {
+            log.info("The folder on the path '{}' was not found", path);
+            throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
+        }
+    }
+
+    public void validateDirectoryPathFormat(String path) {
+        if (!MinioUtils.isValidDirectoryPathFormat(path)) {
+            log.info("Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
+            throw new InvalidResourcePathFormatException(String.format(
+                    "The path '%s' has an invalid format for directory. Expected format: 'parentFolder/.../newFolder/'", path));
+        }
+    }
+
+    public void validateParentExists(String parentPath) {
+        if (!isDirectoryExists(parentPath)) {
+            log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);
+            throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
+        }
+    }
+
+    public void validateNotExists(String path) {
+        if (isDirectoryExists(path)) {
+            log.info("The resource on the path '{}' already exists", path);
+            throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
+        }
+    }
+}

@@ -32,4 +32,8 @@ public class MinioUtils {
     public boolean isNoSuchKey(ErrorResponseException ex) {
         return ex.errorResponse().code().equals("NoSuchKey");
     }
+
+    public boolean isValidDirectoryPathFormat(String path) {
+        return path.matches("^(?:[^/]+/)*[^/]+/$");
+    }
 }
