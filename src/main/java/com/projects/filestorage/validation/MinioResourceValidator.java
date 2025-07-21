@@ -90,10 +90,22 @@ public class MinioResourceValidator {
         validateNotExists(path);
     }
 
+    public void validateGetDirectoryInfo(String path) {
+        validateDirectoryPathFormat(path);
+        validateIsDirectory(path);
+    }
+
     public void validateIsDirectory(String path) {
         if (!isDirectory(path)) {
             log.info("The folder on the path '{}' was not found", path);
             throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
+        }
+    }
+
+    public void validatePathFormat(String path) {
+        if (!MinioUtils.isValidPathFormat(path)) {
+            log.info("Invalid path format: '{}'", path);
+            throw new InvalidResourcePathFormatException(String.format("The path '%s' has an invalid format", path));
         }
     }
 

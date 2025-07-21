@@ -40,6 +40,8 @@ public class MinioClientService {
     public ResourceInfoDto getResourceInfo(String path) {
         log.info("Resolving resource info for path '{}'", path);
 
+        minioResourceValidator.validatePathFormat(path);
+
         var pathToResource = MinioUtils.extractParentPath(path);
         var resourceName = MinioUtils.extractResourceName(path);
         var resourceType = resolveResourceType(path);
@@ -56,14 +58,15 @@ public class MinioClientService {
                 .resourceType(resourceType)
                 .build();
 
-        log.debug("Resolved resource: {}", resourceInfoDto);
+        log.info("Resolved resource: {}", resourceInfoDto);
         return resourceInfoDto;
     }
 
     public List<ResourceInfoDto> getDirectoryInfo(String path) {
         log.info("Resolving directory info for path '{}'", path);
 
-        minioResourceValidator.validateIsDirectory(path);
+        minioResourceValidator.validateGetDirectoryInfo(path);
+
         try {
             var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
@@ -82,7 +85,7 @@ public class MinioClientService {
                 resourceInfos.add(resourceInfo);
             }
 
-            log.debug("Resolved directory: path = {}, size = {}", path, resourceInfos);
+            log.info("Resolved directory: path = {}, size = {}", path, resourceInfos);
             return resourceInfos;
         } catch (Exception ex) {
             log.error("Failed to get directory info for path '{}'", path, ex);
@@ -92,6 +95,8 @@ public class MinioClientService {
     }
 
     public List<ResourceInfoDto> createEmptyDirectory(String path) {
+        log.info("Start creating empty directory at path '{}'", path);
+
         minioResourceValidator.validateCreateEmptyDirectoryConstraints(path);
 
         try {
@@ -102,6 +107,7 @@ public class MinioClientService {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .build());
 
+            log.info("Successfully created empty directory at path '{}'", path);
             return getDirectoryInfo(path);
         } catch (Exception ex) {
             log.error("Unexpected error during creation of an empty directory on the path {}", path, ex);
@@ -111,16 +117,20 @@ public class MinioClientService {
     }
 
     public void deleteResource(String path) {
-        var resourceType = resolveResourceType(path);
-        log.info("Deleting resource '{}' of type {}", path, resourceType);
+        log.info("Deleting resource '{}'", path);
 
+        minioResourceValidator.validatePathFormat(path);
+
+        var resourceType = resolveResourceType(path);
         switch (resourceType) {
             case FILE -> deleteFile(path);
             case DIRECTORY -> deleteDirectory(path);
         }
+
+        log.info("Successful deletion of a resource at the '{}'", path);
     }
 
-    public ResourceType resolveResourceType(String path) {
+    private ResourceType resolveResourceType(String path) {
         if (minioResourceValidator.isFile(path)) return ResourceType.FILE;
         if (minioResourceValidator.isDirectory(path)) return ResourceType.DIRECTORY;
 
@@ -136,8 +146,6 @@ public class MinioClientService {
                     .build());
 
             ensureDirectoryPlaceholder(path);
-
-            log.info("File '{}' deleted successfully from MinIO", path);
         } catch (ErrorResponseException ex) {
             if (MinioUtils.isNoSuchKey(ex)) {
                 log.warn("Attempted to delete file '{}', but it was not found in MinIO (NoSuchKey)", path);
@@ -164,7 +172,6 @@ public class MinioClientService {
 
         var objectsToDelete = createObjectsToDelete(path, objectsIterable);
         removeObjects(path, objectsToDelete);
-        log.debug("Finished deletion of directory '{}'", path);
     }
 
     private void ensureDirectoryPlaceholder(String path) {
@@ -184,7 +191,7 @@ public class MinioClientService {
                         .stream(new ByteArrayInputStream(new byte[0]), 0, -1)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .build());
-                log.info("Recreated placeholder for empty directory '{}'", prefix);
+                log.debug("Recreated placeholder for empty directory '{}'", prefix);
             }
         } catch (Exception ex) {
             log.warn("Failed to recreate placeholder for directory '{}'", prefix, ex);
@@ -209,7 +216,7 @@ public class MinioClientService {
 
     private void removeObjects(String path, List<DeleteObject> objectsToDelete) {
         try {
-            log.info("Starting bulk deletion of {} objects from directory '{}'", objectsToDelete.size(), path);
+            log.debug("Starting bulk deletion of {} objects from directory '{}'", objectsToDelete.size(), path);
 
             var deletionErrors = minioClient.removeObjects(RemoveObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
@@ -231,7 +238,7 @@ public class MinioClientService {
                         path, failedObjects));
             }
 
-            log.info("Successfully deleted all {} objects from directory '{}'", objectsToDelete.size(), path);
+            log.debug("Successfully deleted all {} objects from directory '{}'", objectsToDelete.size(), path);
         } catch (Exception ex) {
             log.error("Unexpected error during deletion of directory '{}'", path, ex);
             throw new MinioAccessException(String.format("Unexpected error during deletion of directory '%s'",
@@ -249,7 +256,7 @@ public class MinioClientService {
                     .build());
 
             var size = statObjectResponse.size();
-            log.info("Size of resource '{}' is {} bytes", path, size);
+            log.debug("Size of resource '{}' is {} bytes", path, size);
             return size;
         } catch (ErrorResponseException ex) {
             if (MinioUtils.isNoSuchKey(ex)) {

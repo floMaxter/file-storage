@@ -5,9 +5,13 @@ import lombok.experimental.UtilityClass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @UtilityClass
 public class MinioUtils {
+
+    private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$");
+    private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)+$");
 
     public String extractResourceName(String path) {
         if (path.isBlank()) return "";
@@ -33,7 +37,11 @@ public class MinioUtils {
         return ex.errorResponse().code().equals("NoSuchKey");
     }
 
+    public boolean isValidPathFormat(String path) {
+        return path.matches(String.valueOf(VALID_PATH_PATTERN));
+    }
+
     public boolean isValidDirectoryPathFormat(String path) {
-        return path.matches("^(?:[^/]+/)*[^/]+/$");
+        return path.matches(String.valueOf(VALID_DIRECTORY_PATH_PATTERN));
     }
 }
