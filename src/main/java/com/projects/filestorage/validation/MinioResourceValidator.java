@@ -66,6 +66,41 @@ public class MinioResourceValidator {
         }
     }
 
+    public boolean isResourceExists(String path) {
+        if (!path.endsWith("/")) {
+            try {
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(minioClientProperties.getBucketName())
+                        .object(path)
+                        .build());
+                return true;
+            } catch (ErrorResponseException erEx) {
+                if (!MinioUtils.isNoSuchKey(erEx)) {
+                    log.warn("Unexpected MinIO error for statObject '{}': {}", path, erEx.errorResponse().code());
+                    throw new MinioAccessException("Error checking resource existence", erEx);
+                }
+                return false;
+            } catch (Exception ex) {
+                log.error("Unexpected error during statObject for '{}'", path, ex);
+                throw new MinioAccessException("Unexpected error checking existence", ex);
+            }
+        }
+
+        try {
+            var objects = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(path)
+                    .delimiter("/")
+                    .recursive(false)
+                    .build());
+
+            return objects.iterator().hasNext();
+        } catch (Exception ex) {
+            log.error("Unexpected error during listObjects for '{}'", path, ex);
+            throw new MinioAccessException("Unexpected error checking existence (listObjects)", ex);
+        }
+    }
+
     public boolean isDirectoryExists(String path) {
         if (!path.endsWith("/")) {
             return false;
@@ -84,7 +119,7 @@ public class MinioResourceValidator {
         }
     }
 
-    public void validateCreateEmptyDirectoryConstraints(String path) {
+    public void validateCreateEmptyDirectory(String path) {
         validateDirectoryPathFormat(path);
         validateParentExists(MinioUtils.extractParentPath(path));
         validateNotExists(path);
@@ -93,6 +128,25 @@ public class MinioResourceValidator {
     public void validateGetDirectoryInfo(String path) {
         validateDirectoryPathFormat(path);
         validateIsDirectory(path);
+    }
+
+    public void validateMoveResource(String sourcePath, String destinationPath) {
+        validatePathFormat(sourcePath);
+        validatePathFormat(destinationPath);
+        validateSamePathType(sourcePath, destinationPath);
+        validateResourceExists(sourcePath);
+        validateNotExists(destinationPath);
+    }
+
+    public void validateSamePathType(String sourcePath, String destinationPath) {
+        boolean isSourceDir = MinioUtils.isPathDirectoryLike(sourcePath);
+        boolean isDestinationDir = MinioUtils.isPathDirectoryLike(destinationPath);
+
+        if (isSourceDir != isDestinationDir) {
+            log.warn("Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
+                    sourcePath, isSourceDir, destinationPath, isDestinationDir);
+            throw new InvalidResourcePathFormatException("Source and destination must both be files or both be directories");
+        }
     }
 
     public void validateIsDirectory(String path) {
@@ -121,6 +175,13 @@ public class MinioResourceValidator {
         if (!isDirectoryExists(parentPath)) {
             log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);
             throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
+        }
+    }
+
+    public void validateResourceExists(String path) {
+        if (!isResourceExists(path)) {
+            log.warn("Resource on path '{}' was not found (not a file or directory)", path);
+            throw new ResourceNotFoundException(String.format("The resource on the path '%s' was not found", path));
         }
     }
 

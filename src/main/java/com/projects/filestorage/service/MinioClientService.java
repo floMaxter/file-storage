@@ -8,6 +8,8 @@ import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.utils.MinioUtils;
 import com.projects.filestorage.validation.MinioResourceValidator;
 import com.projects.filestorage.web.dto.response.ResourceInfoDto;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -97,7 +99,7 @@ public class MinioClientService {
     public List<ResourceInfoDto> createEmptyDirectory(String path) {
         log.info("Start creating empty directory at path '{}'", path);
 
-        minioResourceValidator.validateCreateEmptyDirectoryConstraints(path);
+        minioResourceValidator.validateCreateEmptyDirectory(path);
 
         try {
             minioClient.putObject(PutObjectArgs.builder()
@@ -114,6 +116,22 @@ public class MinioClientService {
             throw new MinioAccessException(String.format(
                     "Unexpected error during creation of an empty directory on the path '%s'", path), ex);
         }
+    }
+
+    public ResourceInfoDto moveResource(String sourcePath, String destinationPath) {
+        log.info("Start moving resource from '{}' to '{}'", sourcePath, destinationPath);
+
+        minioResourceValidator.validateMoveResource(sourcePath, destinationPath);
+
+        var resourceType = resolveResourceType(sourcePath);
+        switch (resourceType) {
+            case FILE -> moveFile(sourcePath, destinationPath);
+            case DIRECTORY -> moveDirectory(sourcePath, destinationPath);
+        }
+        deleteResource(sourcePath);
+
+        log.info("Successfully moving resource from '{}' to '{}'", sourcePath, destinationPath);
+        return getResourceInfo(destinationPath);
     }
 
     public void deleteResource(String path) {
@@ -137,6 +155,53 @@ public class MinioClientService {
 
         log.warn("Resource on path '{}' was not found (not a file or directory)", path);
         throw new ResourceNotFoundException(String.format("The resource on the path '%s' was not found", path));
+    }
+
+    private void moveFile(String sourcePath, String destinationPath) {
+        log.debug("Start moving file from '{}' to '{}'", sourcePath, destinationPath);
+
+        try {
+            minioClient.copyObject(CopyObjectArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .object(destinationPath)
+                    .source(CopySource.builder()
+                            .bucket(minioClientProperties.getBucketName())
+                            .object(sourcePath)
+                            .build())
+                    .build());
+
+            log.debug("Successfully moving file from '{}' to '{}'", sourcePath, destinationPath);
+        } catch (Exception ex) {
+            throw new MinioAccessException(String.format(
+                    "Unexpected error during move file from %s to %s", sourcePath, destinationPath));
+        }
+    }
+
+    private void moveDirectory(String sourcePath, String destinationPath) {
+        log.debug("Start moving directory from '{}' to '{}'", sourcePath, destinationPath);
+
+        try {
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(sourcePath)
+                    .delimiter("/")
+                    .recursive(false)
+                    .build());
+
+            for (var result : objectItems) {
+                var nestedObjectPath = result.get().objectName();
+                var nestedResourceName = MinioUtils.extractResourceName(nestedObjectPath);
+
+                var nestedSourcePath = sourcePath + nestedResourceName;
+                var nestedDestinationPath = destinationPath + nestedResourceName;
+                moveResource(nestedSourcePath, nestedDestinationPath);
+            }
+
+            log.debug("Successfully moving directory from '{}' to '{}'", sourcePath, destinationPath);
+        } catch (Exception ex) {
+            throw new MinioAccessException(String.format(
+                    "Unexpected error during directory file from %s to %s", sourcePath, destinationPath));
+        }
     }
 
     private void deleteFile(String path) {

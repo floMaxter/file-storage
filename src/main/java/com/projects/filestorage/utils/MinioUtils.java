@@ -33,6 +33,10 @@ public class MinioUtils {
         return String.join("/", segments) + "/";
     }
 
+    public boolean isPathDirectoryLike(String path) {
+        return path != null && path.endsWith("/");
+    }
+
     public boolean isNoSuchKey(ErrorResponseException ex) {
         return ex.errorResponse().code().equals("NoSuchKey");
     }
