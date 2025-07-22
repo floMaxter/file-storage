@@ -126,6 +126,7 @@ public class MinioClientService {
             case FILE -> deleteFile(path);
             case DIRECTORY -> deleteDirectory(path);
         }
+        ensureDirectoryPlaceholder(path);
 
         log.info("Successful deletion of a resource at the '{}'", path);
     }
@@ -144,8 +145,6 @@ public class MinioClientService {
                     .bucket(minioClientProperties.getBucketName())
                     .object(path)
                     .build());
-
-            ensureDirectoryPlaceholder(path);
         } catch (ErrorResponseException ex) {
             if (MinioUtils.isNoSuchKey(ex)) {
                 log.warn("Attempted to delete file '{}', but it was not found in MinIO (NoSuchKey)", path);
