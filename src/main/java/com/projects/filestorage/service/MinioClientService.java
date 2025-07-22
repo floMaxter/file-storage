@@ -42,7 +42,7 @@ public class MinioClientService {
     public ResourceInfoDto getResourceInfo(String path) {
         log.info("Resolving resource info for path '{}'", path);
 
-        minioResourceValidator.validatePathFormat(path);
+        minioResourceValidator.validateGetResourceInfo(path);
 
         var pathToResource = MinioUtils.extractParentPath(path);
         var resourceName = MinioUtils.extractResourceName(path);
@@ -99,7 +99,7 @@ public class MinioClientService {
     public List<ResourceInfoDto> createEmptyDirectory(String path) {
         log.info("Start creating empty directory at path '{}'", path);
 
-        minioResourceValidator.validateCreateEmptyDirectory(path);
+        minioResourceValidator.validateCreateEmptyDirectoryConstraints(path);
 
         try {
             minioClient.putObject(PutObjectArgs.builder()
@@ -137,7 +137,7 @@ public class MinioClientService {
     public void deleteResource(String path) {
         log.info("Deleting resource '{}'", path);
 
-        minioResourceValidator.validatePathFormat(path);
+        minioResourceValidator.validateDeleteResource(path);
 
         var resourceType = resolveResourceType(path);
         switch (resourceType) {

@@ -23,6 +23,92 @@ public class MinioResourceValidator {
     private final MinioClient minioClient;
     private final MinioClientProperties minioClientProperties;
 
+    public void validateGetResourceInfo(String path) {
+        validatePathFormat(path);
+        validateResourceExists(path);
+    }
+
+    public void validateGetDirectoryInfo(String path) {
+        validateDirectoryPathFormat(path);
+        validateResourceExists(path);
+        validateIsDirectory(path);
+    }
+
+    public void validateCreateEmptyDirectoryConstraints(String path) {
+        validateDirectoryPathFormat(path);
+        validateParentExists(MinioUtils.extractParentPath(path));
+        validateNotExists(path);
+    }
+
+    public void validateMoveResource(String sourcePath, String destinationPath) {
+        validatePathFormat(sourcePath);
+        validatePathFormat(destinationPath);
+
+        validateSamePathType(sourcePath, destinationPath);
+
+        validateResourceExists(sourcePath);
+        validateNotExists(destinationPath);
+    }
+
+    public void validateDeleteResource(String path) {
+        validatePathFormat(path);
+        validateResourceExists(path);
+    }
+
+    public void validateSamePathType(String sourcePath, String destinationPath) {
+        boolean isSourceDir = MinioUtils.isPathDirectoryLike(sourcePath);
+        boolean isDestinationDir = MinioUtils.isPathDirectoryLike(destinationPath);
+
+        if (isSourceDir != isDestinationDir) {
+            log.warn("Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
+                    sourcePath, isSourceDir, destinationPath, isDestinationDir);
+            throw new InvalidResourcePathFormatException("Source and destination must both be files or both be directories");
+        }
+    }
+
+    public void validateIsDirectory(String path) {
+        if (!isDirectory(path)) {
+            log.info("The folder on the path '{}' was not found", path);
+            throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
+        }
+    }
+
+    public void validatePathFormat(String path) {
+        if (!MinioUtils.isValidPathFormat(path)) {
+            log.info("Invalid path format: '{}'", path);
+            throw new InvalidResourcePathFormatException(String.format("The path '%s' has an invalid format", path));
+        }
+    }
+
+    public void validateDirectoryPathFormat(String path) {
+        if (!MinioUtils.isValidDirectoryPathFormat(path)) {
+            log.info("Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
+            throw new InvalidResourcePathFormatException(String.format(
+                    "The path '%s' has an invalid format for directory. Expected format: 'parentFolder/.../newFolder/'", path));
+        }
+    }
+
+    public void validateParentExists(String parentPath) {
+        if (!isDirectoryExists(parentPath)) {
+            log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);
+            throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
+        }
+    }
+
+    public void validateResourceExists(String path) {
+        if (!isResourceExists(path)) {
+            log.warn("Resource on path '{}' was not found (not a file or directory)", path);
+            throw new ResourceNotFoundException(String.format("The resource on the path '%s' was not found", path));
+        }
+    }
+
+    public void validateNotExists(String path) {
+        if (isDirectoryExists(path)) {
+            log.info("The resource on the path '{}' already exists", path);
+            throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
+        }
+    }
+
     public boolean isFile(String path) {
         try {
             minioClient.statObject(StatObjectArgs.builder()
@@ -116,79 +202,6 @@ public class MinioResourceValidator {
             return objectItems.iterator().hasNext();
         } catch (Exception ex) {
             return false;
-        }
-    }
-
-    public void validateCreateEmptyDirectory(String path) {
-        validateDirectoryPathFormat(path);
-        validateParentExists(MinioUtils.extractParentPath(path));
-        validateNotExists(path);
-    }
-
-    public void validateGetDirectoryInfo(String path) {
-        validateDirectoryPathFormat(path);
-        validateIsDirectory(path);
-    }
-
-    public void validateMoveResource(String sourcePath, String destinationPath) {
-        validatePathFormat(sourcePath);
-        validatePathFormat(destinationPath);
-        validateSamePathType(sourcePath, destinationPath);
-        validateResourceExists(sourcePath);
-        validateNotExists(destinationPath);
-    }
-
-    public void validateSamePathType(String sourcePath, String destinationPath) {
-        boolean isSourceDir = MinioUtils.isPathDirectoryLike(sourcePath);
-        boolean isDestinationDir = MinioUtils.isPathDirectoryLike(destinationPath);
-
-        if (isSourceDir != isDestinationDir) {
-            log.warn("Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
-                    sourcePath, isSourceDir, destinationPath, isDestinationDir);
-            throw new InvalidResourcePathFormatException("Source and destination must both be files or both be directories");
-        }
-    }
-
-    public void validateIsDirectory(String path) {
-        if (!isDirectory(path)) {
-            log.info("The folder on the path '{}' was not found", path);
-            throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
-        }
-    }
-
-    public void validatePathFormat(String path) {
-        if (!MinioUtils.isValidPathFormat(path)) {
-            log.info("Invalid path format: '{}'", path);
-            throw new InvalidResourcePathFormatException(String.format("The path '%s' has an invalid format", path));
-        }
-    }
-
-    public void validateDirectoryPathFormat(String path) {
-        if (!MinioUtils.isValidDirectoryPathFormat(path)) {
-            log.info("Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
-            throw new InvalidResourcePathFormatException(String.format(
-                    "The path '%s' has an invalid format for directory. Expected format: 'parentFolder/.../newFolder/'", path));
-        }
-    }
-
-    public void validateParentExists(String parentPath) {
-        if (!isDirectoryExists(parentPath)) {
-            log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);
-            throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
-        }
-    }
-
-    public void validateResourceExists(String path) {
-        if (!isResourceExists(path)) {
-            log.warn("Resource on path '{}' was not found (not a file or directory)", path);
-            throw new ResourceNotFoundException(String.format("The resource on the path '%s' was not found", path));
-        }
-    }
-
-    public void validateNotExists(String path) {
-        if (isDirectoryExists(path)) {
-            log.info("The resource on the path '{}' already exists", path);
-            throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
         }
     }
 }
