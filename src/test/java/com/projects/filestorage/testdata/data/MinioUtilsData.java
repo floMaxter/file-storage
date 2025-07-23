@@ -61,4 +61,50 @@ public class MinioUtilsData {
                 "папка/вложенная-папка/"
         );
     }
+
+    public static Stream<String> getValidSearchQuery() {
+        return Stream.of(
+                "_",
+                "-",
+                "file",
+                "файл",
+                "file.txt",
+                "файл.txt",
+                "directory/",
+                "папка/",
+                "directory/file",
+                "папка/файл",
+                "directory/file.txt",
+                "папка/файл.txt",
+                "directory/inner-directory/",
+                "папка/вложенная-папка/",
+                "directory/inner-directory/file",
+                "папка/вложенная-папка/файл",
+                "directory/inner-directory/file.txt",
+                "папка/вложенная-папка/файл.txt"
+        );
+    }
+
+    public static Stream<String> getInvalidSearchQuery() {
+        return Stream.of(
+                "",
+                "/",
+                "//",
+                "folder//file.txt",
+                "/folder",
+                "folder/file?.txt",
+                "folder/file*.txt",
+                "folder/file|.txt",
+                "folder/ file.txt",
+                "folder/файл .txt",
+                "folder/../file.txt",
+                "../file.txt",
+                "..",
+                "./file.txt",
+                "folder//",
+                "folder/..",
+                "folder/sub/..",
+                "folder/файл?.txt"
+        );
+    }
 }

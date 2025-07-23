@@ -3,6 +3,7 @@ package com.projects.filestorage.service;
 import com.projects.filestorage.config.MinioClientProperties;
 import com.projects.filestorage.domain.enums.ResourceType;
 import com.projects.filestorage.exception.DirectoryDeletionException;
+import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.utils.MinioUtils;
@@ -90,9 +91,37 @@ public class MinioClientService {
             log.info("[Success] Resolved directory info: path = {}, resources = {}", path, resourceInfos.size());
             return resourceInfos;
         } catch (Exception ex) {
-            log.error("[Failure] Failed to get directory info for path '{}'", path, ex);
+            log.error("[Failure] Unexpected error while getting information about a directory on the path '{}'", path, ex);
             throw new MinioAccessException(String.format(
                     "Unexpected error while getting information about a directory on the path '%s'", path), ex);
+        }
+    }
+
+    public List<ResourceInfoDto> searchResources(String query) {
+        log.info("[Start] Searching for resources by '{}'", query);
+
+        minioResourceValidator.validateSearchQueryFormat(query);
+
+        try {
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(query)
+                    .recursive(true)
+                    .build());
+
+            var resourceInfos = new ArrayList<ResourceInfoDto>();
+            for (var result : objectItems) {
+                var objectPath = result.get().objectName();
+                var resourceInfo = getResourceInfo(objectPath);
+                resourceInfos.add(resourceInfo);
+            }
+
+            log.info("[Success] Searched for recourses by '{}': size = {}", query, resourceInfos.size());
+            return resourceInfos;
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error while searching for resources by '{}'", query);
+            throw new InvalidSearchQueryFormatException(String.format(
+                    "Unexpected error while getting information about a directory on the path '%s'", query), ex);
         }
     }
 

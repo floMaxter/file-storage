@@ -35,4 +35,18 @@ public class MinioUtilsTest {
         var result = MinioUtils.isValidDirectoryPathFormat(path);
         assertThat(result).isTrue();
     }
+
+    @ParameterizedTest(name = "Validate the correct search query: (\"{0}\")")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#getValidSearchQuery")
+    public void isValidSearchQueryFormat_ValidQuery_ShouldReturnTrue(String query) {
+        var result = MinioUtils.isValidSearchQueryFormat(query);
+        assertThat(result).isTrue();
+    }
+
+    @ParameterizedTest(name = "Validate the incorrect search query: (\"{0}\")")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioUtilsData#getInvalidSearchQuery")
+    public void isValidSearchQueryFormat_InvalidQuery_ShouldReturnFalse(String query) {
+        var result = MinioUtils.isValidSearchQueryFormat(query);
+        assertThat(result).isFalse();
+    }
 }

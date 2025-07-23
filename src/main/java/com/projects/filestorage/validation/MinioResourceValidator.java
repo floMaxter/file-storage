@@ -88,6 +88,13 @@ public class MinioResourceValidator {
         }
     }
 
+    public void validateSearchQueryFormat(String query) {
+        if (!MinioUtils.isValidSearchQueryFormat(query)) {
+            log.info("[Validate] Invalid search query format: '{}'", query);
+            throw new InvalidResourcePathFormatException(String.format("The query '%s' has an invalid format", query));
+        }
+    }
+
     public void validateParentExists(String parentPath) {
         if (!isDirectoryExists(parentPath)) {
             log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);

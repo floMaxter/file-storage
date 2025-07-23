@@ -12,6 +12,7 @@ public class MinioUtils {
 
     private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$");
     private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)+$");
+    private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile("^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$");
 
     public String extractResourceName(String path) {
         if (path.isBlank()) return "";
@@ -47,5 +48,9 @@ public class MinioUtils {
 
     public boolean isValidDirectoryPathFormat(String path) {
         return path.matches(String.valueOf(VALID_DIRECTORY_PATH_PATTERN));
+    }
+
+    public boolean isValidSearchQueryFormat(String query) {
+        return query.matches(String.valueOf(VALID_SEARCH_QUERY_PATTERN));
     }
 }
