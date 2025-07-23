@@ -10,9 +10,15 @@ import java.util.regex.Pattern;
 @UtilityClass
 public class MinioUtils {
 
-    private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$");
-    private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile("^(?:[\\p{L}\\p{N}_.-]+/)+$");
-    private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile("^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$");
+    private static final Pattern VALID_PATH_PATTERN = Pattern.compile(
+            "^(?!.*(?:^|/)\\.\\.?(?:/|$))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$"
+    );
+    private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile(
+            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))([\\p{L}\\p{N}_.-]+/)+$"
+    );
+    private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile(
+            "^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$"
+    );
 
     public String extractResourceName(String path) {
         if (path.isBlank()) return "";

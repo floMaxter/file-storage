@@ -32,7 +32,6 @@ public class MinioUtilsData {
         return Stream.of(
                 "",
                 "_",
-                ".",
                 "-",
                 "file",
                 "файл",
@@ -40,6 +39,7 @@ public class MinioUtilsData {
                 "файл.txt",
                 "directory/",
                 "папка/",
+                "file.txt/",
                 "directory/file",
                 "папка/файл",
                 "directory/file.txt",
@@ -53,12 +53,79 @@ public class MinioUtilsData {
         );
     }
 
+    public static Stream<String> getInvalidPath() {
+        return Stream.of(
+                " ",
+                "/",
+                "//",
+                "folder//file.txt",
+                "/folder",
+                "folder/file?.txt",
+                "folder/file*.txt",
+                "folder/file|.txt",
+                "folder/ file.txt",
+                "folder/файл .txt",
+                "folder/../file.txt",
+                "../file.txt",
+                "..",
+                "./file.txt",
+                "folder//",
+                "folder/..",
+                "folder/sub/..",
+                "folder/файл?.txt"
+        );
+    }
+
     public static Stream<String> getValidDirectoryPath() {
         return Stream.of(
-                "directory/",
+                "dir/",
                 "папка/",
-                "directory/inner-directory/",
-                "папка/вложенная-папка/"
+                "dir-name/",
+                "имя_папки/",
+                "dir-123/",
+                "папка123/",
+                "nested/dir/",
+                "вложенная/папка/",
+                "deep/nested/dir/",
+                "глубокая/вложенная/папка/",
+                "a/",
+                "д/",
+                "_dir/",
+                ".hidden-dir/",
+                "директория-с-тире/",
+                "директория_с_подчёркиванием/"
+        );
+    }
+
+    public static Stream<String> getInvalidDirectoryPath() {
+        return Stream.of(
+                "../",
+                "/",
+                "/folder/",
+                "folder",
+                "folder//",
+                "folder/../",
+                "folder/..",
+                "./folder/",
+                "folder/./",
+                "folder/sub/..",
+                "folder/./sub/",
+                "folder/..sub/",
+                "folder/sub//",
+                "folder/sub\\",
+                "folder\\sub/",
+                "folder/sub\\",
+                "folder\\sub\\",
+                "folder/ /",
+                " fol der/",
+                "folder/ ",
+                "fol*der/",
+                "fold?er/",
+                "folder>/",
+                "folder<sub/",
+                "folder|sub/",
+                "folder\n/",
+                "folder\r/"
         );
     }
 
