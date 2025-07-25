@@ -7,10 +7,12 @@ import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.utils.MinioUtils;
+import com.projects.filestorage.utils.ResponseHeaderUtils;
 import com.projects.filestorage.validation.MinioResourceValidator;
 import com.projects.filestorage.web.dto.response.ResourceInfoDto;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
+import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -21,15 +23,19 @@ import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -141,7 +147,7 @@ public class MinioClientService {
             log.info("[Success] Created empty directory at path '{}'", path);
             return getDirectoryInfo(path);
         } catch (Exception ex) {
-            log.error("[Failure] Unexpected error during creation of an empty directory on the path {}", path, ex);
+            log.error("[Failure] Unexpected error during creation of an empty directory on the path '{}'", path, ex);
             throw new MinioAccessException(String.format(
                     "Unexpected error during creation of an empty directory on the path '%s'", path), ex);
         }
@@ -161,6 +167,20 @@ public class MinioClientService {
 
         log.info("[Success] Moved resource from '{}' to '{}'", sourcePath, destinationPath);
         return getResourceInfo(destinationPath);
+    }
+
+    public void downloadResource(HttpServletResponse response, String path) {
+        log.info("[Start] Downloading a resource on the path '{}'", path);
+
+        minioResourceValidator.validateDownloadResource(path);
+
+        var resourceType = resolveResourceType(path);
+        switch (resourceType) {
+            case FILE -> downloadFile(response, path);
+            case DIRECTORY -> downloadZipFile(response, path);
+        }
+
+        log.info("[Success] Downloaded a resource on the path '{}'", path);
     }
 
     public void deleteResource(String path) {
@@ -235,6 +255,64 @@ public class MinioClientService {
         }
     }
 
+    private void downloadFile(HttpServletResponse response, String path) {
+        log.debug("[Start] Downloading a file on the path '{}'", path);
+
+        ResponseHeaderUtils.setFileDownloadHeader(response, path);
+        try {
+            var objectResponse = minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .object(path)
+                    .build());
+
+            var outputStream = response.getOutputStream();
+            StreamUtils.copy(objectResponse, outputStream);
+
+            log.debug("[Success] Downloaded a file on the path '{}'", path);
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error when download a file on the path '{}'", path, ex);
+            throw new MinioAccessException(String.format(
+                    "Unexpected error when download a file on the path '%s'", path), ex);
+        }
+    }
+
+    private void downloadZipFile(HttpServletResponse response, String path) {
+        log.debug("[Start] Downloading a directory on the path '{}'", path);
+
+        ResponseHeaderUtils.setZipDownloadHeader(response, path);
+        try (var zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .prefix(path)
+                    .recursive(true)
+                    .build());
+
+            for (var objectItem : objectItems) {
+                var item = objectItem.get();
+
+                var zipEntry = new ZipEntry(item.objectName());
+                zipEntry.setSize(item.size());
+                zipEntry.setTime(System.currentTimeMillis());
+
+                zipOutputStream.putNextEntry(zipEntry);
+
+                var objectResponse = minioClient.getObject(GetObjectArgs.builder()
+                        .bucket(minioClientProperties.getBucketName())
+                        .object(item.objectName())
+                        .build());
+                StreamUtils.copy(objectResponse, zipOutputStream);
+                zipOutputStream.closeEntry();
+            }
+            zipOutputStream.finish();
+
+            log.debug("[Success] Downloaded a directory on the path '{}'", path);
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error when download a directory on the path '{}'", path, ex);
+            throw new MinioAccessException(String.format(
+                    "Unexpected error when download a directory on the path '%s'", path), ex);
+        }
+    }
+
     private void deleteFile(String path) {
         log.debug("[Start] Deleting a file on the '{}'", path);
 
@@ -249,7 +327,7 @@ public class MinioClientService {
             if (MinioUtils.isNoSuchKey(ex)) {
                 log.warn("[Warn] Attempted to delete file '{}', but it was not found in MinIO (NoSuchKey)", path);
             } else {
-                log.error("MinIO responded with error while deleting file '{}'. Error code: {}",
+                log.error("[Failure] MinIO responded with error while deleting file '{}'. Error code: {}",
                         path, ex.errorResponse().code(), ex);
                 throw new MinioAccessException(String.format("MinIO error occurred while deleting file '%s'. Error code: %s",
                         path, ex.errorResponse().code()), ex);
@@ -313,7 +391,7 @@ public class MinioClientService {
                 objectsToDelete.add(new DeleteObject(objectName));
             }
 
-            log.debug("Collected {} objects to delete from directory '{}'", objectsToDelete.size(), path);
+            log.debug("[Success] Collected {} objects to delete from directory '{}'", objectsToDelete.size(), path);
             return objectsToDelete;
         } catch (Exception ex) {
             log.error("[Failure] Unexpected error when accessing the '{}' resource", path);

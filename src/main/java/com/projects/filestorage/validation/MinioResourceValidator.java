@@ -50,6 +50,11 @@ public class MinioResourceValidator {
         validateNotExists(destinationPath);
     }
 
+    public void validateDownloadResource(String path) {
+        validatePathFormat(path);
+        validateResourceExists(path);
+    }
+
     public void validateDeleteResource(String path) {
         validatePathFormat(path);
         validateResourceExists(path);
