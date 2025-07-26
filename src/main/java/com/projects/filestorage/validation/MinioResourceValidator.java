@@ -85,7 +85,7 @@ public class MinioResourceValidator {
         boolean isDestinationDir = MinioUtils.isPathDirectoryLike(destinationPath);
 
         if (isSourceDir != isDestinationDir) {
-            log.warn("Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
+            log.warn("[Validate] Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
                     sourcePath, isSourceDir, destinationPath, isDestinationDir);
             throw new InvalidResourcePathFormatException("Source and destination must both be files or both be directories");
         }
@@ -93,21 +93,21 @@ public class MinioResourceValidator {
 
     public void validateIsDirectory(String path) {
         if (!isDirectory(path)) {
-            log.info("The folder on the path '{}' was not found", path);
+            log.info("[Validate] The folder on the path '{}' was not found", path);
             throw new DirectoryNotFoundException(String.format("The folder on the path '%s' was not found", path));
         }
     }
 
     public void validatePathFormat(String path) {
         if (!MinioUtils.isValidPathFormat(path)) {
-            log.info("Invalid path format: '{}'", path);
+            log.info("[Validate] Invalid path format: '{}'", path);
             throw new InvalidResourcePathFormatException(String.format("The path '%s' has an invalid format", path));
         }
     }
 
     public void validateDirectoryPathFormat(String path) {
         if (!MinioUtils.isValidDirectoryPathFormat(path)) {
-            log.info("Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
+            log.info("[Validate] Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
             throw new InvalidResourcePathFormatException(String.format(
                     "The path '%s' has an invalid format for directory. Expected format: 'parentFolder/.../newFolder/'", path));
         }
@@ -122,21 +122,21 @@ public class MinioResourceValidator {
 
     public void validateParentExists(String parentPath) {
         if (!isDirectoryExists(parentPath)) {
-            log.info("An attempt to create an empty file using a non-existent path '{}'", parentPath);
+            log.info("[Validate] An attempt to create an empty file using a non-existent path '{}'", parentPath);
             throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
         }
     }
 
     public void validateResourceExists(String path) {
         if (!isResourceExists(path)) {
-            log.warn("Resource on path '{}' was not found (not a file or directory)", path);
+            log.warn("[Validate] Resource on path '{}' was not found (not a file or directory)", path);
             throw new ResourceNotFoundException(String.format("The resource on the path '%s' was not found", path));
         }
     }
 
     public void validateNotExists(String path) {
         if (isDirectoryExists(path)) {
-            log.info("The resource on the path '{}' already exists", path);
+            log.info("[Validate] The resource on the path '{}' already exists", path);
             throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
         }
     }
@@ -175,12 +175,12 @@ public class MinioResourceValidator {
             if (MinioUtils.isNoSuchKey(ex)) {
                 return false;
             }
-            log.info("MinIO responded with error while checking if path '{}' is a file: {}",
+            log.info("[Validate] MinIO responded with error while checking if path '{}' is a file: {}",
                     path, ex.errorResponse().code());
             throw new MinioAccessException(String.format("MinIO error when checking for file at path '%s'. Error code: %s",
                     path, ex.errorResponse().code()), ex);
         } catch (Exception ex) {
-            log.error("Unexpected error occurred while checking if path '{}' is a file", path, ex);
+            log.error("[Failed] Unexpected error occurred while checking if path '{}' is a file", path, ex);
             throw new MinioAccessException(String.format("Unexpected error while verifying file at path '%s'",
                     path), ex);
         }
@@ -201,7 +201,7 @@ public class MinioResourceValidator {
 
             return objectItems.iterator().hasNext();
         } catch (Exception ex) {
-            log.error("Unexpected error occurred while checking if path '{}' is a directory", path, ex);
+            log.error("[Failed] Unexpected error occurred while checking if path '{}' is a directory", path, ex);
             throw new MinioAccessException(String.format("Unexpected error while verifying directory at path '%s'",
                     path), ex);
         }
@@ -217,12 +217,12 @@ public class MinioResourceValidator {
                 return true;
             } catch (ErrorResponseException erEx) {
                 if (!MinioUtils.isNoSuchKey(erEx)) {
-                    log.warn("Unexpected MinIO error for statObject '{}': {}", path, erEx.errorResponse().code());
+                    log.warn("[Validate] Unexpected MinIO error for statObject '{}': {}", path, erEx.errorResponse().code());
                     throw new MinioAccessException("Error checking resource existence", erEx);
                 }
                 return false;
             } catch (Exception ex) {
-                log.error("Unexpected error during statObject for '{}'", path, ex);
+                log.error("[Failed] Unexpected error during statObject for '{}'", path, ex);
                 throw new MinioAccessException("Unexpected error checking existence", ex);
             }
         }
@@ -237,7 +237,7 @@ public class MinioResourceValidator {
 
             return objects.iterator().hasNext();
         } catch (Exception ex) {
-            log.error("Unexpected error during listObjects for '{}'", path, ex);
+            log.error("[Failed] Unexpected error during listObjects for '{}'", path, ex);
             throw new MinioAccessException("Unexpected error checking existence (listObjects)", ex);
         }
     }
