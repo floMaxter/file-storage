@@ -387,7 +387,6 @@ public class MinioClientService {
         var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(minioClientProperties.getBucketName())
                 .prefix(path)
-                .delimiter("/")
                 .recursive(true)
                 .build());
 
