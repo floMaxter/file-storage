@@ -384,14 +384,14 @@ public class MinioClientService {
     private void deleteDirectory(String path) {
         log.debug("[Start] Deleting a directory on the '{}'", path);
 
-        var objectsIterable = minioClient.listObjects(ListObjectsArgs.builder()
+        var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                 .bucket(minioClientProperties.getBucketName())
                 .prefix(path)
                 .delimiter("/")
                 .recursive(true)
                 .build());
 
-        var objectsToDelete = createObjectsToDelete(path, objectsIterable);
+        var objectsToDelete = createObjectsToDelete(path, objectItems);
         removeObjects(path, objectsToDelete);
 
         log.debug("[Success] Deleted a directory on the '{}'", path);
@@ -402,14 +402,14 @@ public class MinioClientService {
 
         var prefix = MinioUtils.extractParentPath(path);
         try {
-            var objectsIterable = minioClient.listObjects(ListObjectsArgs.builder()
+            var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
                     .prefix(prefix)
                     .delimiter("/")
                     .recursive(false)
                     .build());
 
-            if (!objectsIterable.iterator().hasNext()) {
+            if (!objectItems.iterator().hasNext()) {
                 minioClient.putObject(PutObjectArgs.builder()
                         .bucket(minioClientProperties.getBucketName())
                         .object(prefix)
