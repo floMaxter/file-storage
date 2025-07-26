@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -183,6 +184,28 @@ public class MinioClientService {
         log.info("[Success] Downloaded a resource on the path '{}'", path);
     }
 
+    public List<ResourceInfoDto> uploadResources(String path, List<MultipartFile> files) {
+        log.info("[Start] Uploading resources on the path '{}'", path);
+
+        minioResourceValidator.validateUploadResources(path, files);
+
+        try {
+            var resourceInfos = new ArrayList<ResourceInfoDto>();
+            for (var file : files) {
+                var currentFullPath = path + file.getOriginalFilename();
+                var resourceInfoDto = uploadResource(currentFullPath, file);
+                resourceInfos.add(resourceInfoDto);
+            }
+
+            log.info("[Success] Uploaded resources on the path '{}', number of resource = {}", path, resourceInfos.size());
+            return resourceInfos;
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error while loading resources on the path '{}'", path, ex);
+            throw new MinioAccessException(String.format(
+                    "Unexpected error while loading a resources on the path '%s'", path), ex);
+        }
+    }
+
     public void deleteResource(String path) {
         log.info("[Start] Deleting resource at path '{}'", path);
 
@@ -310,6 +333,25 @@ public class MinioClientService {
             log.error("[Failure] Unexpected error when download a directory on the path '{}'", path, ex);
             throw new MinioAccessException(String.format(
                     "Unexpected error when download a directory on the path '%s'", path), ex);
+        }
+    }
+
+    private ResourceInfoDto uploadResource(String path, MultipartFile file) {
+        log.debug("[Start] Uploading resource on the path '{}'", path);
+
+        try {
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(minioClientProperties.getBucketName())
+                    .object(path)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .build());
+
+            log.debug("[Success] Uploaded resource on the path '{}'", path);
+            return getResourceInfo(path);
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error while loading resource on the path '{}'", path, ex);
+            throw new MinioAccessException(String.format(
+                    "Unexpected error while loading resource on the path '%s'", path), ex);
         }
     }
 

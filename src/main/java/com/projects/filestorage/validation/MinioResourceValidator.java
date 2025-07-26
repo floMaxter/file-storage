@@ -1,7 +1,9 @@
 package com.projects.filestorage.validation;
 
+import com.projects.filestorage.config.FileUploadProperties;
 import com.projects.filestorage.config.MinioClientProperties;
 import com.projects.filestorage.exception.DirectoryNotFoundException;
+import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
@@ -14,6 +16,9 @@ import io.minio.errors.ErrorResponseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -22,6 +27,7 @@ public class MinioResourceValidator {
 
     private final MinioClient minioClient;
     private final MinioClientProperties minioClientProperties;
+    private final FileUploadProperties fileUploadProperties;
 
     public void validateGetResourceInfo(String path) {
         validatePathFormat(path);
@@ -32,12 +38,6 @@ public class MinioResourceValidator {
         validateDirectoryPathFormat(path);
         validateResourceExists(path);
         validateIsDirectory(path);
-    }
-
-    public void validateCreateEmptyDirectoryConstraints(String path) {
-        validateDirectoryPathFormat(path);
-        validateParentExists(MinioUtils.extractParentPath(path));
-        validateNotExists(path);
     }
 
     public void validateMoveResource(String sourcePath, String destinationPath) {
@@ -55,9 +55,29 @@ public class MinioResourceValidator {
         validateResourceExists(path);
     }
 
+    public void validateUploadResources(String path, List<MultipartFile> files) {
+        validatePathFormat(path);
+
+        for (var file : files) {
+            validateUploadResource(path + file.getOriginalFilename(), file);
+        }
+    }
+
+    public void validateUploadResource(String path, MultipartFile file) {
+        validatePathFormat(path);
+        validateNotExists(path);
+        validateMultipartFile(file);
+    }
+
     public void validateDeleteResource(String path) {
         validatePathFormat(path);
         validateResourceExists(path);
+    }
+
+    public void validateCreateEmptyDirectoryConstraints(String path) {
+        validateDirectoryPathFormat(path);
+        validateParentExists(MinioUtils.extractParentPath(path));
+        validateNotExists(path);
     }
 
     public void validateSamePathType(String sourcePath, String destinationPath) {
@@ -118,6 +138,29 @@ public class MinioResourceValidator {
         if (isDirectoryExists(path)) {
             log.info("The resource on the path '{}' already exists", path);
             throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
+        }
+    }
+
+    public void validateMultipartFile(MultipartFile file) {
+        validateMultipartFileNotEmpty(file);
+        validateMultipartFileSize(file);
+    }
+
+    public void validateMultipartFileNotEmpty(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            log.debug("[Validate] File is empty");
+            throw new InvalidMultipartFileException("File is empty");
+        }
+    }
+
+    private void validateMultipartFileSize(MultipartFile file) {
+        long maxFileSizeBytes = fileUploadProperties.getMaxFileSize().toBytes();
+        if (file.getSize() > maxFileSizeBytes) {
+            log.debug("[Validate] File size ({} bytes) exceeds the maximum allowed size ({} bytes)",
+                    file.getSize(), maxFileSizeBytes);
+            throw new InvalidMultipartFileException(String.format(
+                    "File size (%d bytes) exceeds the maximum allowed size (%d bytes)",
+                    file.getSize(), maxFileSizeBytes));
         }
     }
 
