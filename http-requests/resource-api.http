@@ -15,8 +15,11 @@ GET localhost:8080/api/resource?path=test2/1.txt
 
 # DELETE RESOURCE REQUEST
 
-### DELETE File, valid path
+### DELETE resource, valid path to file
 DELETE localhost:8080/api/resource?path=test/1.txt
+
+### DELETE resource, valid path to directory
+DELETE localhost:8080/api/resource?path=test/inner/
 
 ### DELETE File, invalid path
 DELETE localhost:8080/api/resource?path=test//1.txt
@@ -24,8 +27,25 @@ DELETE localhost:8080/api/resource?path=test//1.txt
 ### DELETE File, empty path
 DELETE localhost:8080/api/resource?path=
 
-### DELETE File, resource not exists
+### DELETE File, resource not found
 DELETE localhost:8080/api/resource?path=test/2.txt
+
+# DOWNLOAD RESOURCE REQUEST
+
+### DOWNLOAD resource, valid path to file
+GET localhost:8080/api/resource/download?path=test/1.txt
+
+### DOWNLOAD resource, valid path to directory
+GET localhost:8080/api/resource/download?path=test/
+
+### DOWNLOAD resource, invalid path
+GET localhost:8080/api/resource/download?path=test//
+
+### DOWNLOAD resource, empty path
+GET localhost:8080/api/resource/download?path=
+
+### DOWNLOAD resource, resource not found
+GET localhost:8080/api/resource/download?path=test2/
 
 # SEARCH RESOURCE REQUESTS
 
@@ -34,6 +54,3 @@ GET localhost:8080/api/resource/search?query=
 
 ### MOVE resource
 GET localhost:8080/api/resource/move?from=test4/&to=test5/
-
-### DOWNLOAD resource
-GET localhost:8080/api/resource/download?path=test/

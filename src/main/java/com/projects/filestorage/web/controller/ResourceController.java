@@ -36,6 +36,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/download")
+    @ResponseStatus(HttpStatus.OK)
     public void downloadResource(@RequestParam("path") String path,
                                  HttpServletResponse response) {
         minioClientService.downloadResource(response, path);
