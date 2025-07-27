@@ -100,10 +100,7 @@ public class MinioResourceValidator {
     }
 
     public void validatePathFormat(String path) {
-        if (path == null || path.isBlank()) {
-            log.info("[Validate] Path must not be null or blank");
-            throw new InvalidResourcePathFormatException("The path most not be null or blank");
-        }
+        validatePathNotBlank(path);
 
         if (!MinioUtils.isValidPathFormat(path)) {
             log.info("[Validate] Invalid path format: '{}'", path);
@@ -112,6 +109,8 @@ public class MinioResourceValidator {
     }
 
     public void validateDirectoryPathFormat(String path) {
+        validatePathNotBlank(path);
+
         if (!MinioUtils.isValidDirectoryPathFormat(path)) {
             log.info("[Validate] Invalid format for directory path: '{}'. Expected pattern: 'parentFolderName/newFolderName/'", path);
             throw new InvalidResourcePathFormatException(String.format(
@@ -144,6 +143,13 @@ public class MinioResourceValidator {
         if (isResourceExists(path)) {
             log.info("[Validate] The resource on the path '{}' already exists", path);
             throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
+        }
+    }
+
+    public void validatePathNotBlank(String path) {
+        if (path == null || path.isBlank()) {
+            log.info("[Validate] Path must not be null or blank");
+            throw new InvalidResourcePathFormatException("The path most not be null or blank");
         }
     }
 
