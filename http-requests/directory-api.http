@@ -1,0 +1,11 @@
+### GET directory info (directory)
+GET localhost:8080/api/directory?path=test/
+
+### GET directory info (file)
+GET localhost:8080/api/directory?path=test2/inner/
+
+### POST (create) empty directory
+POST localhost:8080/api/directory?path=test/inner/
+
+### DELETE Directory
+DELETE localhost:8080/api/resource?path=test5/

@@ -1,0 +1,25 @@
+### SIGN-UP
+POST localhost:8080/api/auth/sign-up
+Content-Type: application/json
+
+{
+  "username": "Username_1",
+  "password": "password"
+}
+
+### SIGN-IN
+POST localhost:8080/api/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "Max Vdovin",
+  "password": "password"
+}
+
+### SIGN-OUT
+POST localhost:8080/api/auth/sign-out
+
+# USER REQUESTS
+
+### GET User
+GET localhost:8080/api/user/me

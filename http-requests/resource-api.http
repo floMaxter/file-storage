@@ -1,0 +1,20 @@
+### GET resource info (file)
+GET localhost:8080/api/resource?path=test/photos/sunrise.jpg
+
+### GET resource info (directory)
+GET localhost:8080/api/resource?path=test/photos/
+
+### GET resource info (file), invalid path
+GET localhost:8080/api/resource?path=test2/
+
+### SEARCH resource
+GET localhost:8080/api/resource/search?query=
+
+### MOVE resource
+GET localhost:8080/api/resource/move?from=test4/&to=test5/
+
+### DOWNLOAD resource
+GET localhost:8080/api/resource/download?path=test/
+
+### DELETE File
+DELETE localhost:8080/api/resource?path=test2/1.txt
