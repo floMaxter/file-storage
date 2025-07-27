@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
         log.warn("Registration conflict: {}", ex.getMessage());
         return ResponseEntity
-                .status(409)
+                .status(HttpStatus.CONFLICT)
                 .body(Map.of("message", ex.getMessage()));
     }
 
@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleBadCredentialsException(BadCredentialsException ex) {
         log.warn("Authorization error: {}", ex.getMessage());
         return ResponseEntity
-                .status(401)
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", ex.getMessage()));
     }
 
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUnauthenticatedAccessException(UnauthenticatedAccessException ex) {
         log.warn("Unauthenticated access: {}", ex.getMessage());
         return ResponseEntity
-                .status(401)
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("message", ex.getMessage()));
     }
 
@@ -101,14 +101,14 @@ public class GlobalExceptionHandler {
     private ResponseEntity<Map<String, String>> handleNotFoundException(String message) {
         log.warn("Resource not fount: {}", message);
         return ResponseEntity
-                .status(404)
+                .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", message));
     }
 
     private ResponseEntity<Map<String, String>> buildValidationErrorResponse(String message) {
         log.warn("Validation failed: {}", message);
         return ResponseEntity
-                .badRequest()
+                .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", message));
     }
 }
