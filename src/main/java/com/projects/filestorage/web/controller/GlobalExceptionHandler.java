@@ -1,5 +1,6 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.exception.DirectoryNotFoundException;
 import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
@@ -123,6 +124,11 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(DirectoryNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleDirectoryNotFoundException(DirectoryNotFoundException ex) {
+        log.warn("[Handle] Directory not found (DirectoryNotFoundException): {}", ex.getMessage());
+        return handleNotFoundException(ex.getMessage());
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
