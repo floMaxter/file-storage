@@ -15,9 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/storage/")
+@RequestMapping("/api")
 @RequiredArgsConstructor
-public class FileStorageController {
+public class ResourceController {
 
     private final MinioClientService minioClientService;
 
@@ -29,17 +29,6 @@ public class FileStorageController {
     @DeleteMapping("/resource")
     public void deleteResource(@RequestParam("path") String path) {
         minioClientService.deleteResource(path);
-    }
-
-    @PostMapping(value = "/resource")
-    public List<ResourceInfoDto> uploadResources(@RequestParam("path") String path,
-                                                 @RequestParam("files") List<MultipartFile> files) {
-        return minioClientService.uploadResources(path, files);
-    }
-
-    @GetMapping("/resource/search")
-    public List<ResourceInfoDto> searchResources(@RequestParam("query") String query) {
-        return minioClientService.searchResources(query);
     }
 
     @GetMapping("/resource/download")
@@ -54,13 +43,14 @@ public class FileStorageController {
         return minioClientService.moveResource(sourcePath, destinationPath);
     }
 
-    @GetMapping("/directory")
-    public List<ResourceInfoDto> getDirectoryInfo(@RequestParam("path") String path) {
-        return minioClientService.getDirectoryInfo(path);
+    @GetMapping("/resource/search")
+    public List<ResourceInfoDto> searchResources(@RequestParam("query") String query) {
+        return minioClientService.searchResources(query);
     }
 
-    @PostMapping("/directory")
-    public List<ResourceInfoDto> createEmptyDirectory(@RequestParam("path") String path) {
-        return minioClientService.createEmptyDirectory(path);
+    @PostMapping(value = "/resource")
+    public List<ResourceInfoDto> uploadResources(@RequestParam("path") String path,
+                                                 @RequestParam("files") List<MultipartFile> files) {
+        return minioClientService.uploadResources(path, files);
     }
 }

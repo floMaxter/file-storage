@@ -46,7 +46,6 @@ public class WebSecurityConfig {
                                 "/registration",
                                 "/files/**"
                         ).permitAll()
-                        .requestMatchers("/api/storage/**").permitAll()
                         .requestMatchers("/api/**").authenticated())
                 .userDetailsService(defaultUserDetailsService)
                 .securityContext(context -> context
