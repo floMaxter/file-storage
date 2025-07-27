@@ -5,6 +5,7 @@ import com.projects.filestorage.config.MinioClientProperties;
 import com.projects.filestorage.exception.DirectoryNotFoundException;
 import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
+import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
@@ -121,7 +122,7 @@ public class MinioResourceValidator {
     public void validateSearchQueryFormat(String query) {
         if (!MinioUtils.isValidSearchQueryFormat(query)) {
             log.info("[Validate] Invalid search query format: '{}'", query);
-            throw new InvalidResourcePathFormatException(String.format("The query '%s' has an invalid format", query));
+            throw new InvalidSearchQueryFormatException(String.format("The query '%s' has an invalid format", query));
         }
     }
 

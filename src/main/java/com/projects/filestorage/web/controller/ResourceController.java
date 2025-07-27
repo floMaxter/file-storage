@@ -50,6 +50,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/search")
+    @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoDto> searchResources(@RequestParam("query") String query) {
         return minioClientService.searchResources(query);
     }

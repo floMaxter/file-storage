@@ -69,5 +69,8 @@ GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
 
 # SEARCH RESOURCE REQUESTS
 
-### SEARCH resource
-GET localhost:8080/api/resource/search?query=
+### SEARCH resource, valid query
+GET localhost:8080/api/resource/search?query=test2/
+
+### SEARCH resource, invalid query
+GET localhost:8080/api/resource/search?query=test//

@@ -1,6 +1,7 @@
 package com.projects.filestorage.web.controller;
 
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
+import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
@@ -87,6 +88,15 @@ public class GlobalExceptionHandler {
         log.warn("Attempt to create a resource that already exists: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidSearchQueryFormatException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidSearchQueryFormatException(
+            InvalidSearchQueryFormatException ex) {
+        log.warn("[Handle] Invalid search query format exception: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", ex.getMessage()));
     }
 
