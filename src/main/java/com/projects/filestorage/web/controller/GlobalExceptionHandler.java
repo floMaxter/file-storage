@@ -1,5 +1,7 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.exception.InvalidResourcePathFormatException;
+import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolation;
@@ -26,10 +28,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
 
-        log.warn("Validation failed: {}", message);
-        return ResponseEntity
-                .badRequest()
-                .body(Map.of("message", message));
+        return buildValidationErrorResponse(message);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -38,10 +37,7 @@ public class GlobalExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
 
-        log.warn("Validation failed: {}", message);
-        return ResponseEntity
-                .badRequest()
-                .body(Map.of("message", message));
+        return buildValidationErrorResponse(message);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
@@ -70,10 +66,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, String>> handleNoResourceFoundException(NoResourceFoundException ex) {
-        log.warn("Resource not fount: {}", ex.getMessage());
-        return ResponseEntity
-                .status(404)
-                .body(Map.of("message", ex.getMessage()));
+        return handleNotFoundException(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidResourcePathFormatException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidResourcePathFormatException(
+            InvalidResourcePathFormatException ex) {
+        return buildValidationErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return handleNotFoundException(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
@@ -82,5 +86,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .internalServerError()
                 .body(Map.of("message", "Internal error"));
+    }
+
+    private ResponseEntity<Map<String, String>> handleNotFoundException(String message) {
+        log.warn("Resource not fount: {}", message);
+        return ResponseEntity
+                .status(404)
+                .body(Map.of("message", message));
+    }
+
+    private ResponseEntity<Map<String, String>> buildValidationErrorResponse(String message) {
+        log.warn("Validation failed: {}", message);
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", message));
     }
 }
