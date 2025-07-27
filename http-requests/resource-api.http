@@ -1,3 +1,6 @@
+
+# GET INFO REQUESTS
+
 ### GET resource info (file)
 GET localhost:8080/api/resource?path=test/photos/sunrise.jpg
 
@@ -5,7 +8,26 @@ GET localhost:8080/api/resource?path=test/photos/sunrise.jpg
 GET localhost:8080/api/resource?path=test/photos/
 
 ### GET resource info (file), invalid path
-GET localhost:8080/api/resource?path=test2/
+GET localhost:8080/api/resource?path=test//
+
+### GET resource info (file), resource not exists
+GET localhost:8080/api/resource?path=test2/1.txt
+
+# DELETE RESOURCE REQUEST
+
+### DELETE File, valid path
+DELETE localhost:8080/api/resource?path=test/1.txt
+
+### DELETE File, invalid path
+DELETE localhost:8080/api/resource?path=test//1.txt
+
+### DELETE File, empty path
+DELETE localhost:8080/api/resource?path=
+
+### DELETE File, resource not exists
+DELETE localhost:8080/api/resource?path=test/2.txt
+
+# SEARCH RESOURCE REQUESTS
 
 ### SEARCH resource
 GET localhost:8080/api/resource/search?query=
@@ -15,6 +37,3 @@ GET localhost:8080/api/resource/move?from=test4/&to=test5/
 
 ### DOWNLOAD resource
 GET localhost:8080/api/resource/download?path=test/
-
-### DELETE File
-DELETE localhost:8080/api/resource?path=test2/1.txt
