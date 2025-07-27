@@ -49,6 +49,9 @@ public class MinioUtils {
     }
 
     public boolean isValidPathFormat(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
         return path.matches(String.valueOf(VALID_PATH_PATTERN));
     }
 

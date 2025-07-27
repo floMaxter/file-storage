@@ -99,6 +99,11 @@ public class MinioResourceValidator {
     }
 
     public void validatePathFormat(String path) {
+        if (path == null || path.isBlank()) {
+            log.info("[Validate] Path must not be null or blank");
+            throw new InvalidResourcePathFormatException("The path most not be null or blank");
+        }
+
         if (!MinioUtils.isValidPathFormat(path)) {
             log.info("[Validate] Invalid path format: '{}'", path);
             throw new InvalidResourcePathFormatException(String.format("The path '%s' has an invalid format", path));

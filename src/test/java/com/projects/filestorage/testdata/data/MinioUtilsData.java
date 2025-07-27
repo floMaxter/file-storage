@@ -55,6 +55,7 @@ public class MinioUtilsData {
 
     public static Stream<String> getInvalidPath() {
         return Stream.of(
+                "",
                 " ",
                 "/",
                 "//",
