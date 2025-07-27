@@ -43,6 +43,7 @@ public class ResourceController {
     }
 
     @GetMapping("/resource/move")
+    @ResponseStatus(HttpStatus.OK)
     public ResourceInfoDto moveResource(@RequestParam("from") String sourcePath,
                                         @RequestParam("to") String destinationPath) {
         return minioClientService.moveResource(sourcePath, destinationPath);

@@ -47,10 +47,27 @@ GET localhost:8080/api/resource/download?path=
 ### DOWNLOAD resource, resource not found
 GET localhost:8080/api/resource/download?path=test2/
 
+# MOVE RESOURCE REQUESTS
+
+### MOVE resource, valid path to file
+GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
+
+### MOVE resource, valid path to directory
+GET localhost:8080/api/resource/move?from=test/&to=test2/
+
+### MOVE resource, invalid path
+GET localhost:8080/api/resource/move?from=test//1.txt&to=test/inner/1.txt
+
+### MOVE resource, empty path
+GET localhost:8080/api/resource/move?from=test/1.txt&to=
+
+### MOVE resource, resource not found
+GET localhost:8080/api/resource/move?from=test/2.txt&to=test/inner/1.txt
+
+### MOVE resource, resource already exists
+GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
+
 # SEARCH RESOURCE REQUESTS
 
 ### SEARCH resource
 GET localhost:8080/api/resource/search?query=
-
-### MOVE resource
-GET localhost:8080/api/resource/move?from=test4/&to=test5/

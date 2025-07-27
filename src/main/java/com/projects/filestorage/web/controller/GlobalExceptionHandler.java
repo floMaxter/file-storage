@@ -1,12 +1,14 @@
 package com.projects.filestorage.web.controller;
 
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
+import com.projects.filestorage.exception.ResourceAlreadyExistsException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
@@ -78,6 +80,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
         return handleNotFoundException(ex.getMessage());
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
+        log.warn("Attempt to create a resource that already exists: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("message", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
