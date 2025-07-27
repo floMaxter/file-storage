@@ -56,6 +56,7 @@ public class ResourceController {
     }
 
     @PostMapping(value = "/resource")
+    @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoDto> uploadResources(@RequestParam("path") String path,
                                                  @RequestParam("files") List<MultipartFile> files) {
         return minioClientService.uploadResources(path, files);

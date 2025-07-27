@@ -1,5 +1,6 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
@@ -16,6 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
@@ -99,11 +101,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidSearchQueryFormatException.class)
     public ResponseEntity<Map<String, String>> handleInvalidSearchQueryFormatException(
             InvalidSearchQueryFormatException ex) {
-        log.warn("[Handle] Invalid search query format exception: {}", ex.getMessage());
+        log.warn("[Handle] Invalid search query format (InvalidSearchQueryFormatException): {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("message", ex.getMessage()));
     }
+
+    @ExceptionHandler(InvalidMultipartFileException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidMultipartFileException(InvalidMultipartFileException ex) {
+        log.warn("[Handle] Invalid multipart file (InvalidMultipartFileException): {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+        log.warn("[Handle] The file size is too large when uploading (MaxUploadSizeExceededException): {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
