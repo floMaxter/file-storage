@@ -140,7 +140,7 @@ public class MinioResourceValidator {
     }
 
     public void validateNotExists(String path) {
-        if (isDirectoryExists(path)) {
+        if (isResourceExists(path)) {
             log.info("[Validate] The resource on the path '{}' already exists", path);
             throw new ResourceAlreadyExistsException(String.format("The resource on the path '%s' already exists", path));
         }
