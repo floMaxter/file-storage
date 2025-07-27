@@ -29,6 +29,10 @@ public class MinioUtils {
         return path.substring(lastSlash + 1);
     }
 
+    public String extractDirectoryName(String path) {
+        return extractResourceName(path) + "/";
+    }
+
     public String extractParentPath(String path) {
         if (path == null || path.isBlank()) return "";
 

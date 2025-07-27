@@ -263,11 +263,15 @@ public class MinioClientService {
 
             for (var result : objectItems) {
                 var nestedObjectPath = result.get().objectName();
-                var nestedResourceName = MinioUtils.extractResourceName(nestedObjectPath);
 
-                var nestedSourcePath = sourcePath + nestedResourceName;
+                var nestedResourceType = resolveResourceType(nestedObjectPath);
+                var nestedResourceName = nestedResourceType == ResourceType.FILE
+                        ? MinioUtils.extractResourceName(nestedObjectPath)
+                        : MinioUtils.extractDirectoryName(nestedObjectPath);
+
                 var nestedDestinationPath = destinationPath + nestedResourceName;
-                moveResource(nestedSourcePath, nestedDestinationPath);
+
+                moveResource(nestedObjectPath, nestedDestinationPath);
             }
 
             log.debug("[Success] Moved directory from '{}' to '{}'", sourcePath, destinationPath);
