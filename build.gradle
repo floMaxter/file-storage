@@ -18,6 +18,11 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	minioVersion = '8.5.17'
+	commonsLang3Version = '3.18.0'
+}
+
 dependencies {
 	// Spring
 	implementation 'org.springframework.boot:spring-boot-starter'
@@ -28,6 +33,10 @@ dependencies {
 
 	// Database
 	runtimeOnly 'org.postgresql:postgresql'
+
+	// S3
+	implementation "io.minio:minio:$minioVersion"
+	implementation "org.apache.commons:commons-lang3:$commonsLang3Version"
 
 	// Migration
 	implementation 'org.flywaydb:flyway-database-postgresql'

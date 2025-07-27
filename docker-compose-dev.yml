@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   file-storage-postgres-db:
     image: postgres:15-alpine
@@ -12,9 +10,33 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - file-storage-network
+  file-storage-minio:
+    image: minio/minio
+    container_name: file-storage-minio
+    env_file:
+      - .env.dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+  minio-create-buckets:
+    image: minio/mc
+    depends_on:
+      - file-storage-minio
+    entrypoint: >
+      /bin/sh -c "
+        sleep 5;
+        mc alias set local http://file-storage-minio:9000 admin password;
+        mc mb -p local/user-files;
+        mc policy set public local/filestorage;
+        exit 0;
+      "
 
 volumes:
   postgres-data:
+  minio-data:
 
 networks:
   file-storage-network:
