@@ -27,6 +27,7 @@ public class DirectoryController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoDto> createEmptyDirectory(@RequestParam("path") String path) {
         return minioClientService.createEmptyDirectory(path);
     }

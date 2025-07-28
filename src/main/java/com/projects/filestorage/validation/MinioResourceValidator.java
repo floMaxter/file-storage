@@ -127,8 +127,8 @@ public class MinioResourceValidator {
 
     public void validateParentExists(String parentPath) {
         if (!isDirectoryExists(parentPath)) {
-            log.info("[Validate] An attempt to create an empty file using a non-existent path '{}'", parentPath);
-            throw new ResourceNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
+            log.info("[Validate] An attempt to create an empty directory using a non-existent path '{}'", parentPath);
+            throw new DirectoryNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
         }
     }
 
