@@ -1,13 +1,17 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.exception.DirectoryDeletionException;
 import com.projects.filestorage.exception.DirectoryNotFoundException;
 import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
+import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
+import com.projects.filestorage.exception.UserNotFoundException;
+import com.projects.filestorage.exception.UserRoleNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +76,22 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(UserRoleNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserRoleNotFoundException(UserRoleNotFoundException ex) {
+        log.warn("[Handle] User role not found (UserRoleNotFoundException): {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
+        log.warn("[Handle] User not found (UserNotFoundException): {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, String>> handleNoResourceFoundException(NoResourceFoundException ex) {
         log.warn("[Handle] Resource not found (NoResourceFoundException): {}", ex.getMessage());
@@ -130,11 +150,27 @@ public class GlobalExceptionHandler {
         return handleNotFoundException(ex.getMessage());
     }
 
+    @ExceptionHandler(DirectoryDeletionException.class)
+    public ResponseEntity<Map<String, String>> handleDirectoryDeletionException(DirectoryDeletionException ex) {
+        log.warn("[Handle] Error when deleting a directory (DirectoryDeletionException): {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MinioAccessException.class)
+    public ResponseEntity<Map<String, String>> handleMinioAccessException(MinioAccessException ex) {
+        log.warn("[Handle] Error when working with MinIO: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         log.error("[Handle] Unexpected error (Exception): {}", ex.getMessage(), ex);
         return ResponseEntity
-                .internalServerError()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Internal error"));
     }
 
