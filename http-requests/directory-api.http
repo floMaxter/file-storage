@@ -31,4 +31,4 @@ POST localhost:8080/api/directory?path=
 POST localhost:8080/api/directory?path=test7/inner/inner2/
 
 ### POST (create) empty directory, directory already exists
-POST localhost:8080/api/directory?path=test2/
+POST localhost:8080/api/directory?path=test/

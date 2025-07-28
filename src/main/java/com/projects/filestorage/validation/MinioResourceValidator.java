@@ -77,7 +77,13 @@ public class MinioResourceValidator {
 
     public void validateCreateEmptyDirectoryConstraints(String path) {
         validateDirectoryPathFormat(path);
-        validateParentExists(MinioUtils.extractParentPath(path));
+
+        var parentPath = MinioUtils.extractParentPath(path);
+        if (!MinioUtils.isRootPath(parentPath)) {
+            validateParentExists(parentPath);
+        }
+        log.debug("[Validate] Directory is being created in root — skipping parent existence check");
+
         validateNotExists(path);
     }
 

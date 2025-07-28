@@ -48,6 +48,10 @@ public class MinioUtils {
         return path != null && path.endsWith("/");
     }
 
+    public boolean isRootPath(String parentPath) {
+        return parentPath == null || parentPath.isBlank();
+    }
+
     public boolean isNoSuchKey(ErrorResponseException ex) {
         return ex.errorResponse().code().equals("NoSuchKey");
     }
