@@ -39,6 +39,10 @@ public class SecurityContextManager {
         securityContextHolderStrategy.clearContext();
     }
 
+    public String getCurrentUsername() {
+        return securityContextHolderStrategy.getContext().getAuthentication().getName();
+    }
+
     public boolean isAuthenticated() {
         var auth = securityContextHolderStrategy.getContext().getAuthentication();
         return auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken);
