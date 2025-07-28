@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserService userService;
+    private final MinioClientService minioClientService;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final SessionManager sessionManager;
@@ -33,6 +34,9 @@ public class AuthService {
                                     HttpServletResponse response) {
         var user = userService.createUser(signUpRequestDto.username(),
                 passwordEncoder.encode(signUpRequestDto.password()));
+
+        minioClientService.createUserRootDirectory(user.getId());
+
         authenticateAndStartSession(signUpRequestDto.username(), signUpRequestDto.password(), request, response);
 
         return userMapper.toSignInResponseDto(user);

@@ -44,6 +44,10 @@ public class MinioUtils {
         return path.substring(0, lastSlash + 1);
     }
 
+    public String getUserRootDirectory(Long userId) {
+        return String.format("user-%d-files/", userId);
+    }
+
     public boolean isPathDirectoryLike(String path) {
         return path != null && path.endsWith("/");
     }

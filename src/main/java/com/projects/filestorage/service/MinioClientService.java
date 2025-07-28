@@ -132,6 +132,15 @@ public class MinioClientService {
         }
     }
 
+    public void createUserRootDirectory(Long userId) {
+        log.info("[Start] Creating root directory for userId={}", userId);
+
+        var userRootPath = MinioUtils.getUserRootDirectory(userId);
+        createEmptyDirectory(userRootPath);
+
+        log.info("[Success] User root directory created: userId={}, directoryPath: '{}'", userId, userRootPath);
+    }
+
     public List<ResourceInfoDto> createEmptyDirectory(String path) {
         log.info("[Start] Creating empty directory at path '{}'", path);
 
