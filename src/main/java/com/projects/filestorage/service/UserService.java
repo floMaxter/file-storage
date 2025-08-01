@@ -24,6 +24,11 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found", username)));
     }
 
+    @Transactional(readOnly = true)
+    public Long getCurrentUserIdOrThrow() {
+        return getCurrentUserOrThrow().getId();
+    }
+
     @Transactional
     public User createUser(String username, String password) {
         validateUsernameUniqueness(username);

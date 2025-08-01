@@ -2,10 +2,10 @@
 # GET INFO REQUESTS
 
 ### GET resource info (file)
-GET localhost:8080/api/resource?path=test/photos/sunrise.jpg
+GET localhost:8080/api/resource?path=1.txt
 
 ### GET resource info (directory)
-GET localhost:8080/api/resource?path=test/photos/
+GET localhost:8080/api/resource?path=test/inner/
 
 ### GET resource info (file), invalid path
 GET localhost:8080/api/resource?path=test//

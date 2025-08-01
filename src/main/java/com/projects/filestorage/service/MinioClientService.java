@@ -1,15 +1,15 @@
 package com.projects.filestorage.service;
 
 import com.projects.filestorage.config.MinioClientProperties;
-import com.projects.filestorage.domain.enums.ResourceType;
 import com.projects.filestorage.exception.DirectoryDeletionException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.utils.MinioUtils;
-import com.projects.filestorage.utils.ResponseHeaderUtils;
 import com.projects.filestorage.validation.MinioResourceValidator;
-import com.projects.filestorage.web.dto.response.ResourceInfoDto;
+import com.projects.filestorage.web.dto.internal.MinioResourceInfoDto;
+import com.projects.filestorage.web.dto.internal.ResourceDownloadDto;
+import com.projects.filestorage.web.dto.internal.enums.ResourceType;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.GetObjectArgs;
@@ -23,7 +23,6 @@ import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -32,8 +31,8 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -47,7 +46,7 @@ public class MinioClientService {
     private final MinioClientProperties minioClientProperties;
     private final MinioResourceValidator minioResourceValidator;
 
-    public ResourceInfoDto getResourceInfo(String path) {
+    public MinioResourceInfoDto getResourceInfo(String path) {
         log.info("[Start] Resolving resource info for path '{}'", path);
 
         minioResourceValidator.validateGetResourceInfo(path);
@@ -61,7 +60,7 @@ public class MinioClientService {
             size = getResourceSize(path);
         }
 
-        var resourceInfoDto = ResourceInfoDto.builder()
+        var resourceInfoDto = MinioResourceInfoDto.builder()
                 .path(pathToResource)
                 .name(resourceName)
                 .size(size)
@@ -72,7 +71,7 @@ public class MinioClientService {
         return resourceInfoDto;
     }
 
-    public List<ResourceInfoDto> getDirectoryInfo(String path) {
+    public List<MinioResourceInfoDto> getDirectoryInfo(String path) {
         log.info("[Start] Resolving directory info for path '{}'", path);
 
         minioResourceValidator.validateGetDirectoryInfo(path);
@@ -85,7 +84,7 @@ public class MinioClientService {
                     .recursive(false)
                     .build());
 
-            var resourceInfos = new ArrayList<ResourceInfoDto>();
+            var resourceInfos = new ArrayList<MinioResourceInfoDto>();
             for (var result : objectItems) {
                 var objectPath = result.get().objectName();
 
@@ -104,7 +103,7 @@ public class MinioClientService {
         }
     }
 
-    public List<ResourceInfoDto> searchResources(String query) {
+    public List<MinioResourceInfoDto> searchResources(String query) {
         log.info("[Start] Searching for resources by '{}'", query);
 
         minioResourceValidator.validateSearchQueryFormat(query);
@@ -116,7 +115,7 @@ public class MinioClientService {
                     .recursive(true)
                     .build());
 
-            var resourceInfos = new ArrayList<ResourceInfoDto>();
+            var resourceInfos = new ArrayList<MinioResourceInfoDto>();
             for (var result : objectItems) {
                 var objectPath = result.get().objectName();
                 var resourceInfo = getResourceInfo(objectPath);
@@ -132,16 +131,7 @@ public class MinioClientService {
         }
     }
 
-    public void createUserRootDirectory(Long userId) {
-        log.info("[Start] Creating root directory for userId={}", userId);
-
-        var userRootPath = MinioUtils.getUserRootDirectory(userId);
-        createEmptyDirectory(userRootPath);
-
-        log.info("[Success] User root directory created: userId={}, directoryPath: '{}'", userId, userRootPath);
-    }
-
-    public List<ResourceInfoDto> createEmptyDirectory(String path) {
+    public List<MinioResourceInfoDto> createEmptyDirectory(String path) {
         log.info("[Start] Creating empty directory at path '{}'", path);
 
         minioResourceValidator.validateCreateEmptyDirectoryConstraints(path);
@@ -163,7 +153,7 @@ public class MinioClientService {
         }
     }
 
-    public ResourceInfoDto moveResource(String sourcePath, String destinationPath) {
+    public MinioResourceInfoDto moveResource(String sourcePath, String destinationPath) {
         log.info("[Start] Moving resource from '{}' to '{}'", sourcePath, destinationPath);
 
         minioResourceValidator.validateMoveResource(sourcePath, destinationPath);
@@ -179,27 +169,28 @@ public class MinioClientService {
         return getResourceInfo(destinationPath);
     }
 
-    public void downloadResource(HttpServletResponse response, String path) {
+    public ResourceDownloadDto downloadResource(String path) {
         log.info("[Start] Downloading a resource on the path '{}'", path);
 
         minioResourceValidator.validateDownloadResource(path);
 
         var resourceType = resolveResourceType(path);
-        switch (resourceType) {
-            case FILE -> downloadFile(response, path);
-            case DIRECTORY -> downloadZipFile(response, path);
-        }
+        var resourceDownloadDto = switch (resourceType) {
+            case FILE -> downloadFile(path);
+            case DIRECTORY -> downloadDirectoryAsZip(path);
+        };
 
         log.info("[Success] Downloaded a resource on the path '{}'", path);
+        return resourceDownloadDto;
     }
 
-    public List<ResourceInfoDto> uploadResources(String path, List<MultipartFile> files) {
+    public List<MinioResourceInfoDto> uploadResources(String path, List<MultipartFile> files) {
         log.info("[Start] Uploading resources on the path '{}'", path);
 
         minioResourceValidator.validateUploadResources(path, files);
 
         try {
-            var resourceInfos = new ArrayList<ResourceInfoDto>();
+            var resourceInfos = new ArrayList<MinioResourceInfoDto>();
             for (var file : files) {
                 var currentFullPath = path + file.getOriginalFilename();
                 var resourceInfoDto = uploadResource(currentFullPath, file);
@@ -291,20 +282,20 @@ public class MinioClientService {
         }
     }
 
-    private void downloadFile(HttpServletResponse response, String path) {
+    private ResourceDownloadDto downloadFile(String path) {
         log.debug("[Start] Downloading a file on the path '{}'", path);
 
-        ResponseHeaderUtils.setFileDownloadHeader(response, path);
         try {
             var objectResponse = minioClient.getObject(GetObjectArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
                     .object(path)
                     .build());
 
-            var outputStream = response.getOutputStream();
-            StreamUtils.copy(objectResponse, outputStream);
-
             log.debug("[Success] Downloaded a file on the path '{}'", path);
+            return ResourceDownloadDto.builder()
+                    .fileName(MinioUtils.extractResourceName(path))
+                    .responseBody(objectResponse::transferTo)
+                    .build();
         } catch (Exception ex) {
             log.error("[Failure] Unexpected error when download a file on the path '{}'", path, ex);
             throw new MinioAccessException(String.format(
@@ -312,36 +303,26 @@ public class MinioClientService {
         }
     }
 
-    private void downloadZipFile(HttpServletResponse response, String path) {
+    private ResourceDownloadDto downloadDirectoryAsZip(String path) {
         log.debug("[Start] Downloading a directory on the path '{}'", path);
 
-        ResponseHeaderUtils.setZipDownloadHeader(response, path);
-        try (var zipOutputStream = new ZipOutputStream(response.getOutputStream())) {
+        try {
             var objectItems = minioClient.listObjects(ListObjectsArgs.builder()
                     .bucket(minioClientProperties.getBucketName())
                     .prefix(path)
                     .recursive(true)
                     .build());
 
+            var objectPathsToDownload = new ArrayList<String>();
             for (var objectItem : objectItems) {
                 var item = objectItem.get();
-
-                var zipEntry = new ZipEntry(item.objectName());
-                zipEntry.setSize(item.size());
-                zipEntry.setTime(System.currentTimeMillis());
-
-                zipOutputStream.putNextEntry(zipEntry);
-
-                var objectResponse = minioClient.getObject(GetObjectArgs.builder()
-                        .bucket(minioClientProperties.getBucketName())
-                        .object(item.objectName())
-                        .build());
-                StreamUtils.copy(objectResponse, zipOutputStream);
-                zipOutputStream.closeEntry();
+                objectPathsToDownload.add(item.objectName());
             }
-            zipOutputStream.finish();
 
-            log.debug("[Success] Downloaded a directory on the path '{}'", path);
+            return ResourceDownloadDto.builder()
+                    .fileName(MinioUtils.extractResourceName(path) + ".zip")
+                    .responseBody(outputStream -> createZipArchive(path, objectPathsToDownload, outputStream))
+                    .build();
         } catch (Exception ex) {
             log.error("[Failure] Unexpected error when download a directory on the path '{}'", path, ex);
             throw new MinioAccessException(String.format(
@@ -349,7 +330,36 @@ public class MinioClientService {
         }
     }
 
-    private ResourceInfoDto uploadResource(String path, MultipartFile file) {
+    private void createZipArchive(String pathToDirectory,
+                                  List<String> objectPathsToDownload,
+                                  OutputStream outputStream) {
+        try (var zipOutputStream = new ZipOutputStream(outputStream)) {
+            for (var absoluteObjectPath : objectPathsToDownload) {
+                var relativeObjectPath = absoluteObjectPath.substring(pathToDirectory.length());
+
+                var zipEntry = new ZipEntry(relativeObjectPath);
+                zipEntry.setTime(System.currentTimeMillis());
+                zipOutputStream.putNextEntry(zipEntry);
+
+                var objectResponse = minioClient.getObject(GetObjectArgs.builder()
+                        .bucket(minioClientProperties.getBucketName())
+                        .object(absoluteObjectPath)
+                        .build());
+                StreamUtils.copy(objectResponse, zipOutputStream);
+                zipOutputStream.closeEntry();
+            }
+            zipOutputStream.finish();
+
+            log.debug("[Success] Downloaded a directory on the pathToDirectory '{}'", pathToDirectory);
+        } catch (Exception ex) {
+            log.error("[Failure] Unexpected error when download a directory on the pathToDirectory '{}'", pathToDirectory, ex);
+            throw new MinioAccessException(String.format(
+                    "Unexpected error when download a directory on the pathToDirectory '%s'", pathToDirectory), ex);
+        }
+    }
+
+
+    private MinioResourceInfoDto uploadResource(String path, MultipartFile file) {
         log.debug("[Start] Uploading resource on the path '{}'", path);
 
         try {
@@ -439,7 +449,7 @@ public class MinioClientService {
         log.debug("[Start] Collecting objects to delete from directory on the '{}'", path);
 
         try {
-            var objectsToDelete = new LinkedList<DeleteObject>();
+            var objectsToDelete = new ArrayList<DeleteObject>();
             for (var object : objects) {
                 var objectName = object.get().objectName();
                 objectsToDelete.add(new DeleteObject(objectName));

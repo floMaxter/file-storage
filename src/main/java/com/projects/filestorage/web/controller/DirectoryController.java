@@ -1,7 +1,7 @@
 package com.projects.filestorage.web.controller;
 
-import com.projects.filestorage.service.MinioClientService;
-import com.projects.filestorage.web.dto.response.ResourceInfoDto;
+import com.projects.filestorage.service.UserFileService;
+import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,17 +18,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectoryController {
 
-    private final MinioClientService minioClientService;
+    private final UserFileService userFileService;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ResourceInfoDto> getDirectoryInfo(@RequestParam("path") String path) {
-        return minioClientService.getDirectoryInfo(path);
+    public List<ResourceInfoResponseDto> getDirectoryInfo(@RequestParam("path") String path) {
+        return userFileService.getDirectoryInfo(path);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public List<ResourceInfoDto> createEmptyDirectory(@RequestParam("path") String path) {
-        return minioClientService.createEmptyDirectory(path);
+    public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path") String path) {
+        return userFileService.createEmptyDirectory(path);
     }
 }
