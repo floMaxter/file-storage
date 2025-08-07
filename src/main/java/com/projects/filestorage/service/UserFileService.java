@@ -130,7 +130,7 @@ public class UserFileService {
     }
 
     private String getUserRootDirectory() {
-        var currentUserId = userService.getCurrentUserIdOrThrow();
+        var currentUserId = userService.getCurrentUserIdOrElseThrow();
         return MinioUtils.buildUserRootPath(currentUserId);
     }
 }

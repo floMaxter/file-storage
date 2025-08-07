@@ -18,15 +18,15 @@ public class UserService {
     private final SecurityContextManager securityContextManager;
 
     @Transactional(readOnly = true)
-    public User getCurrentUserOrThrow() {
+    public User getCurrentUserOrElseThrow() {
         var username = securityContextManager.getCurrentUsername();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found", username)));
     }
 
     @Transactional(readOnly = true)
-    public Long getCurrentUserIdOrThrow() {
-        return getCurrentUserOrThrow().getId();
+    public Long getCurrentUserIdOrElseThrow() {
+        return getCurrentUserOrElseThrow().getId();
     }
 
     @Transactional

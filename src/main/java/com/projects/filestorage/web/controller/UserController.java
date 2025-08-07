@@ -21,7 +21,7 @@ public class UserController {
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
     public UserDto getCurrentUser() {
-        var userDto = userService.getCurrentUserOrThrow();
+        var userDto = userService.getCurrentUserOrElseThrow();
         return userMapper.toDto(userDto);
     }
 }
