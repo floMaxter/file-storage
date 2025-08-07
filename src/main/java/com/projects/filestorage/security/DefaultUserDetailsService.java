@@ -1,4 +1,4 @@
-package com.projects.filestorage.service;
+package com.projects.filestorage.security;
 
 import com.projects.filestorage.domain.Role;
 import com.projects.filestorage.repository.UserRepository;
