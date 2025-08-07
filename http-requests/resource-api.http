@@ -2,10 +2,10 @@
 # GET INFO REQUESTS
 
 ### GET resource info (file)
-GET localhost:8080/api/resource?path=1.txt
+GET localhost:8080/api/resource?path=test/2.txt
 
 ### GET resource info (directory)
-GET localhost:8080/api/resource?path=test/inner/
+GET localhost:8080/api/resource?path=test/inner2/
 
 ### GET resource info (file), invalid path
 GET localhost:8080/api/resource?path=test//
@@ -19,7 +19,7 @@ GET localhost:8080/api/resource?path=test2/1.txt
 DELETE localhost:8080/api/resource?path=test/1.txt
 
 ### DELETE resource, valid path to directory
-DELETE localhost:8080/api/resource?path=test/inner/
+DELETE localhost:8080/api/resource?path=test/inner3/
 
 ### DELETE File, invalid path
 DELETE localhost:8080/api/resource?path=test//1.txt
@@ -33,7 +33,7 @@ DELETE localhost:8080/api/resource?path=test/2.txt
 # DOWNLOAD RESOURCE REQUEST
 
 ### DOWNLOAD resource, valid path to file
-GET localhost:8080/api/resource/download?path=test/1.txt
+GET localhost:8080/api/resource/download?path=test/2.txt
 
 ### DOWNLOAD resource, valid path to directory
 GET localhost:8080/api/resource/download?path=test/
@@ -50,10 +50,10 @@ GET localhost:8080/api/resource/download?path=test2/
 # MOVE RESOURCE REQUESTS
 
 ### MOVE resource, valid path to file
-GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
+GET localhost:8080/api/resource/move?from=test/inner4/2.txt&to=test/inner2/2.txt
 
 ### MOVE resource, valid path to directory
-GET localhost:8080/api/resource/move?from=test/&to=test2/
+GET localhost:8080/api/resource/move?from=test/inner/&to=test/inner3/
 
 ### MOVE resource, invalid path
 GET localhost:8080/api/resource/move?from=test//1.txt&to=test/inner/1.txt
@@ -70,7 +70,7 @@ GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
 # SEARCH RESOURCE REQUESTS
 
 ### SEARCH resource, valid query
-GET localhost:8080/api/resource/search?query=test2/
+GET localhost:8080/api/resource/search?query=test/
 
 ### SEARCH resource, invalid query
 GET localhost:8080/api/resource/search?query=test//

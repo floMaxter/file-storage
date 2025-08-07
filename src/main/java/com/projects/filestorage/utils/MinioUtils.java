@@ -44,12 +44,27 @@ public class MinioUtils {
         return path.substring(0, lastSlash + 1);
     }
 
-    public String getUserRootDirectory(Long userId) {
+    public String buildUserRootPath(Long userId) {
         return String.format("user-%d-files/", userId);
+    }
+
+    public String getAbsolutePath(String relativePath, String userRootDirectory) {
+        return userRootDirectory + relativePath;
+    }
+
+    public String getRelativePath(String absolutePath, String userRootDirectory) {
+        if (!absolutePath.startsWith(userRootDirectory)) {
+            throw new IllegalArgumentException("Path does not start with user root directory");
+        }
+        return absolutePath.substring(userRootDirectory.length());
     }
 
     public boolean isPathDirectoryLike(String path) {
         return path != null && path.endsWith("/");
+    }
+
+    public boolean isPathFileLike(String path) {
+        return path != null && !path.endsWith("/");
     }
 
     public boolean isRootPath(String parentPath) {

@@ -29,6 +29,6 @@ public class DirectoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path") String path) {
-        return userFileService.createEmptyDirectory(path);
+        return userFileService.createEmptyDir(path);
     }
 }

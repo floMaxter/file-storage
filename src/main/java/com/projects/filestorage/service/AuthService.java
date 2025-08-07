@@ -37,7 +37,7 @@ public class AuthService {
         var user = userService.createUser(signUpRequestDto.username(),
                 passwordEncoder.encode(signUpRequestDto.password()));
 
-        userFileService.createUserRootDirectory(user.getId());
+        userFileService.createUserRootDir(user.getId());
 
         authenticateAndStartSession(signUpRequestDto.username(), signUpRequestDto.password(), request, response);
 
