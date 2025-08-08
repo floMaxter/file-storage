@@ -3,6 +3,7 @@ package com.projects.filestorage.service.handler.impl;
 import com.projects.filestorage.exception.MinioAccessException;
 import com.projects.filestorage.repository.MinioRepository;
 import com.projects.filestorage.service.handler.MinioResourceHandler;
+import com.projects.filestorage.service.validator.ResourceBusinessValidator;
 import com.projects.filestorage.utils.MinioUtils;
 import com.projects.filestorage.web.dto.internal.CopyResourceDto;
 import com.projects.filestorage.web.dto.internal.ResourceContextDto;
@@ -28,6 +29,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
 
     private final MinioRepository minioRepository;
     private final ResourceInfoMapper resourceInfoMapper;
+    private final ResourceBusinessValidator resourceValidator;
 
     @Override
     public ResourceType getSupportedType() {
@@ -36,6 +38,8 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
 
     @Override
     public ResourceInfoResponseDto getResourceInfo(ResourceContextDto resourceContextDto) {
+        resourceValidator.validateDirectoryExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
+
         var relativePath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
         var resourceName = MinioUtils.extractResourceName(resourceContextDto.relativePath());
         var resourceType = resourceContextDto.resourceType();
@@ -46,6 +50,10 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
     @Override
     public void copyResource(CopyResourceDto copyResourceDto) {
         var sourceContext = copyResourceDto.sourceContext();
+
+        resourceValidator.validateDirectoryCopyPreconditions(
+                sourceContext.bucket(), sourceContext.absolutePath(), copyResourceDto.absoluteDestinationPath()
+        );
 
         var sourceObjectPaths = minioRepository.listRecursiveObjectPaths(
                 sourceContext.bucket(),
@@ -66,11 +74,14 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
 
     @Override
     public void deleteResource(ResourceContextDto resourceContextDto) {
+        resourceValidator.validateFileExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
         minioRepository.deleteResources(resourceContextDto.bucket(), resourceContextDto.absolutePath());
     }
 
     @Override
     public ResourceDownloadDto downloadResource(ResourceContextDto resourceContextDto) {
+        resourceValidator.validateDirectoryExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
+
         var objectPaths = minioRepository.listRecursiveObjectPaths(
                 resourceContextDto.bucket(),
                 resourceContextDto.absolutePath()

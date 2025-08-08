@@ -1,6 +1,7 @@
 package com.projects.filestorage.web.controller;
 
 import com.projects.filestorage.service.UserFileService;
+import com.projects.filestorage.validation.ResourcePathValidator;
 import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,21 +26,26 @@ import java.util.List;
 public class ResourceController {
 
     private final UserFileService userFileService;
+    private final ResourcePathValidator resourcePathValidator;
 
     @GetMapping("/resource")
     @ResponseStatus(HttpStatus.OK)
     public ResourceInfoResponseDto getResourceInfo(@RequestParam("path") String path) {
+        resourcePathValidator.validatePathFormat(path);
         return userFileService.getResourceInfo(path);
     }
 
     @DeleteMapping("/resource")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResource(@RequestParam("path") String path) {
+        resourcePathValidator.validatePathFormat(path);
         userFileService.deleteResource(path);
     }
 
     @GetMapping("/resource/download")
     public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam("path") String path) {
+        resourcePathValidator.validatePathFormat(path);
+
         var resourceDownloadDto = userFileService.downloadResource(path);
 
         return ResponseEntity.ok()
@@ -51,20 +57,23 @@ public class ResourceController {
     @GetMapping("/resource/move")
     @ResponseStatus(HttpStatus.OK)
     public ResourceInfoResponseDto moveResource(@RequestParam("from") String sourcePath,
-                                             @RequestParam("to") String destinationPath) {
+                                                @RequestParam("to") String destinationPath) {
+        resourcePathValidator.validateMovePathsFormat(sourcePath, destinationPath);
         return userFileService.moveResource(sourcePath, destinationPath);
     }
 
     @GetMapping("/resource/search")
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoResponseDto> searchResources(@RequestParam("query") String query) {
+        resourcePathValidator.validateSearchQueryFormat(query);
         return userFileService.searchResources(query);
     }
 
     @PostMapping(value = "/resource")
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> uploadResources(@RequestParam("path") String path,
-                                                      @RequestParam("files") List<MultipartFile> files) {
+                                                         @RequestParam("files") List<MultipartFile> files) {
+        resourcePathValidator.validateUploadResourcesFormat(path, files);
         return userFileService.uploadResources(path, files);
     }
 }

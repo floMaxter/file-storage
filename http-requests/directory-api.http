@@ -2,10 +2,10 @@
 # GET DIRECTORY INFO REQUESTS
 
 ### GET directory info, valid path to directory
-GET localhost:8080/api/directory?path=test/photos_3/
+GET localhost:8080/api/directory?path=test/photos_1/
 
 ### GET directory info, directory not created
-GET localhost:8080/api/directory?path=test/
+GET localhost:8080/api/directory?path=test2/
 
 ### GET directory info, valid path to file
 GET localhost:8080/api/directory?path=test2/1.txt
@@ -19,7 +19,7 @@ GET localhost:8080/api/directory?path=
 # CREATY EMPTY DIRECTORY REQUESTS
 
 ### POST (create) empty directory, valid path
-POST localhost:8080/api/directory?path=test/photos_3/
+POST localhost:8080/api/directory?path=test/photos_5/
 
 ### POST (create) empty directory, invalid path
 POST localhost:8080/api/directory?path=test//inner/

@@ -1,6 +1,7 @@
 package com.projects.filestorage.web.controller;
 
 import com.projects.filestorage.service.UserFileService;
+import com.projects.filestorage.validation.ResourcePathValidator;
 import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,16 +20,19 @@ import java.util.List;
 public class DirectoryController {
 
     private final UserFileService userFileService;
+    private final ResourcePathValidator resourcePathValidator;
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoResponseDto> getDirectoryInfo(@RequestParam("path") String path) {
+        resourcePathValidator.validateDirectoryPathFormat(path);
         return userFileService.getDirectoryInfo(path);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path") String path) {
-        return userFileService.createEmptyDir(path);
+        resourcePathValidator.validateDirectoryPathFormat(path);
+        return userFileService.createEmptyDirectory(path);
     }
 }

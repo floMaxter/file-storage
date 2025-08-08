@@ -3,10 +3,12 @@ package com.projects.filestorage.service;
 import com.projects.filestorage.config.MinioClientProperties;
 import com.projects.filestorage.repository.MinioRepository;
 import com.projects.filestorage.service.handler.MinioResourceDispatcher;
+import com.projects.filestorage.service.validator.ResourceBusinessValidator;
 import com.projects.filestorage.utils.MinioUtils;
 import com.projects.filestorage.web.dto.internal.CopyResourceDto;
 import com.projects.filestorage.web.dto.internal.ResourceContextDto;
 import com.projects.filestorage.web.dto.internal.ResourceDownloadDto;
+import com.projects.filestorage.web.dto.internal.enums.ResourceLocationDto;
 import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class UserFileService {
     private final MinioRepository minioRepository;
     private final MinioResourceDispatcher minioResourceDispatcher;
     private final MinioClientProperties minioClientProperties;
+    private final ResourceBusinessValidator resourceValidator;
 
     public ResourceInfoResponseDto getResourceInfo(String relativePath) {
         var resourceContextDto = buildResourceContextDto(relativePath);
@@ -31,10 +34,15 @@ public class UserFileService {
     }
 
     public List<ResourceInfoResponseDto> getDirectoryInfo(String relativePath) {
-        var userRootDirectory = getUserRootDirectory();
-        var absolutePath = MinioUtils.getAbsolutePath(relativePath, userRootDirectory);
-        var objectPaths = minioRepository.listDirectObjectPaths(minioClientProperties.getBucketName(), absolutePath);
+        var resourceContextDto = buildResourceContextDto(relativePath);
 
+        resourceValidator.validateDirectoryExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
+
+        var objectPaths = minioRepository.listDirectObjectPaths(
+                resourceContextDto.bucket(), resourceContextDto.absolutePath()
+        );
+
+        var userRootDirectory = getUserRootDirectory();
         return objectPaths.stream()
                 .map(p -> MinioUtils.getRelativePath(p, userRootDirectory))
                 .map(this::getResourceInfo)
@@ -42,20 +50,27 @@ public class UserFileService {
     }
 
     public List<ResourceInfoResponseDto> searchResources(String relativePath) {
-        var userRootDirectory = getUserRootDirectory();
-        var absolutePath = MinioUtils.getAbsolutePath(relativePath, userRootDirectory);
-        var objectPaths = minioRepository.listRecursiveObjectPaths(minioClientProperties.getBucketName(), absolutePath);
+        var resourceContextDto = buildResourceContextDto(relativePath);
 
+        var objectPaths = minioRepository.listRecursiveObjectPaths(
+                resourceContextDto.bucket(), resourceContextDto.absolutePath()
+        );
+
+        var userRootDirectory = getUserRootDirectory();
         return objectPaths.stream()
                 .map(p -> MinioUtils.getRelativePath(p, userRootDirectory))
                 .map(this::getResourceInfo)
                 .toList();
     }
 
-    public List<ResourceInfoResponseDto> createEmptyDir(String relativePath) {
-        var userRootDirectory = getUserRootDirectory();
-        var absolutePath = MinioUtils.getAbsolutePath(relativePath, userRootDirectory);
-        minioRepository.putEmptyDirectory(minioClientProperties.getBucketName(), absolutePath);
+    public List<ResourceInfoResponseDto> createEmptyDirectory(String relativePath) {
+        var resourceLocationDto = buildResourceLocationDto(relativePath);
+
+        resourceValidator.validateDirectoryCreationPreconditions(
+                resourceLocationDto.bucket(), resourceLocationDto.absolutePath()
+        );
+
+        minioRepository.putEmptyDirectory(resourceLocationDto.bucket(), resourceLocationDto.absolutePath());
 
         return getDirectoryInfo(relativePath);
     }
@@ -75,18 +90,21 @@ public class UserFileService {
     }
 
     public ResourceDownloadDto downloadResource(String relativePath) {
-        var userPathContextDto = buildResourceContextDto(relativePath);
-        return minioResourceDispatcher.downloadResource(userPathContextDto);
+        var resourceContextDto = buildResourceContextDto(relativePath);
+        return minioResourceDispatcher.downloadResource(resourceContextDto);
     }
 
     public ResourceInfoResponseDto uploadResource(String relativeDirPath, MultipartFile file) {
-        var userRoot = getUserRootDirectory();
-        var dirPath = MinioUtils.getAbsolutePath(relativeDirPath, userRoot);
-        var filePath = dirPath + file.getOriginalFilename();
+        var directoryContextDto = buildResourceContextDto(relativeDirPath);
+        var filePath = directoryContextDto.absolutePath() + file.getOriginalFilename();
+
+        resourceValidator.validateFileDoesNotExits(directoryContextDto.bucket(), filePath);
 
         minioRepository.uploadResource(minioClientProperties.getBucketName(), filePath, file);
 
+        var userRoot = getUserRootDirectory();
         var relativePathToUploadedFile = MinioUtils.getRelativePath(filePath, userRoot);
+
         return getResourceInfo(relativePathToUploadedFile);
     }
 
@@ -127,6 +145,14 @@ public class UserFileService {
         var absoluteDestinationPath = userRootDirectory + relativeDestinationPath;
 
         return new CopyResourceDto(sourceContextDto, absoluteDestinationPath);
+    }
+
+    private ResourceLocationDto buildResourceLocationDto(String relativePath) {
+        var userRootDirectory = getUserRootDirectory();
+        var bucket = minioClientProperties.getBucketName();
+        var absolutePath = userRootDirectory + relativePath;
+
+        return new ResourceLocationDto(bucket, absolutePath);
     }
 
     private String getUserRootDirectory() {
