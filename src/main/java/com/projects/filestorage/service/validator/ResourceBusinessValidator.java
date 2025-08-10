@@ -66,6 +66,4 @@ public class ResourceBusinessValidator {
             throw new DirectoryNotFoundException(String.format("Parent directory does not exist: %s", parentPath));
         }
     }
-
-
 }
