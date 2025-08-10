@@ -1,6 +1,6 @@
 package com.projects.filestorage.service;
 
-import com.projects.filestorage.config.MinioClientProperties;
+import com.projects.filestorage.config.properties.MinioClientProperties;
 import com.projects.filestorage.repository.MinioRepository;
 import com.projects.filestorage.service.handler.MinioResourceDispatcher;
 import com.projects.filestorage.service.validator.ResourceBusinessValidator;

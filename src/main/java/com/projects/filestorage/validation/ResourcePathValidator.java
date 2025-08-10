@@ -1,6 +1,6 @@
 package com.projects.filestorage.validation;
 
-import com.projects.filestorage.config.FileUploadProperties;
+import com.projects.filestorage.config.properties.FileUploadProperties;
 import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;

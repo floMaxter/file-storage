@@ -1,6 +1,6 @@
 package com.projects.filestorage.security.session;
 
-import com.projects.filestorage.config.SessionProperties;
+import com.projects.filestorage.config.properties.SessionProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
