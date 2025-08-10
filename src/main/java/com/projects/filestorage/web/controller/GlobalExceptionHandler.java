@@ -6,6 +6,7 @@ import com.projects.filestorage.exception.InvalidMultipartFileException;
 import com.projects.filestorage.exception.InvalidResourcePathFormatException;
 import com.projects.filestorage.exception.InvalidSearchQueryFormatException;
 import com.projects.filestorage.exception.MinioAccessException;
+import com.projects.filestorage.exception.MinioResourceHandlerNotFound;
 import com.projects.filestorage.exception.ResourceAlreadyExistsException;
 import com.projects.filestorage.exception.ResourceNotFoundException;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
@@ -161,6 +162,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MinioAccessException.class)
     public ResponseEntity<Map<String, String>> handleMinioAccessException(MinioAccessException ex) {
         log.warn("[Handle] Error when working with MinIO: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(MinioResourceHandlerNotFound.class)
+    public ResponseEntity<Map<String, String>> handleMinioResourceHandlerNotFound(MinioResourceHandlerNotFound ex) {
+        log.warn("[Handle] Error when searching for a handler for request to a minio: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", ex.getMessage()));
