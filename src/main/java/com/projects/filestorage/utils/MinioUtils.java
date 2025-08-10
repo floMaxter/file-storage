@@ -3,6 +3,9 @@ package com.projects.filestorage.utils;
 import io.minio.errors.ErrorResponseException;
 import lombok.experimental.UtilityClass;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @UtilityClass
@@ -21,12 +24,10 @@ public class MinioUtils {
     public String extractResourceName(String path) {
         if (path == null || path.isBlank()) return "";
 
-        path = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+        var segments = new ArrayList<>(List.of(path.split("/")));
+        var lastSegment = segments.getLast();
 
-        var lastSlash = path.lastIndexOf("/");
-        if (lastSlash == -1) return path;
-
-        return path.substring(lastSlash + 1);
+        return path.endsWith("/") ? lastSegment + "/" : lastSegment;
     }
 
     public String extractDirectoryName(String path) {
@@ -57,6 +58,11 @@ public class MinioUtils {
             throw new IllegalArgumentException("Path does not start with user root directory");
         }
         return absolutePath.substring(userRootDirectory.length());
+    }
+
+    public boolean fileNameMatchesQuery(String path, String query) {
+        var fileName = Paths.get(path).getFileName().toString();
+        return fileName.toLowerCase().contains(query);
     }
 
     public boolean isPathDirectoryLike(String path) {

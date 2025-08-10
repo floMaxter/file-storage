@@ -49,16 +49,17 @@ public class UserFileService {
                 .toList();
     }
 
-    public List<ResourceInfoResponseDto> searchResources(String relativePath) {
-        var resourceContextDto = buildResourceContextDto(relativePath);
+    public List<ResourceInfoResponseDto> searchResources(String relativeQuery) {
+        var resourceLocationDto = buildResourceLocationDto(relativeQuery);
 
         var objectPaths = minioRepository.listRecursiveObjectPaths(
-                resourceContextDto.bucket(), resourceContextDto.absolutePath()
+                resourceLocationDto.bucket(), resourceLocationDto.absolutePath()
         );
 
         var userRootDirectory = getUserRootDirectory();
         return objectPaths.stream()
                 .map(p -> MinioUtils.getRelativePath(p, userRootDirectory))
+                .filter(relPath -> MinioUtils.fileNameMatchesQuery(relPath, relativeQuery))
                 .map(this::getResourceInfo)
                 .toList();
     }
@@ -94,13 +95,13 @@ public class UserFileService {
         return minioResourceDispatcher.downloadResource(resourceContextDto);
     }
 
-    public ResourceInfoResponseDto uploadResource(String relativeDirPath, MultipartFile file) {
+    public ResourceInfoResponseDto uploadResource(String relativeDirPath, MultipartFile object) {
         var directoryContextDto = buildResourceContextDto(relativeDirPath);
-        var filePath = directoryContextDto.absolutePath() + file.getOriginalFilename();
+        var filePath = directoryContextDto.absolutePath() + object.getOriginalFilename();
 
         resourceValidator.validateFileDoesNotExits(directoryContextDto.bucket(), filePath);
 
-        minioRepository.uploadResource(minioClientProperties.getBucketName(), filePath, file);
+        minioRepository.uploadResource(minioClientProperties.getBucketName(), filePath, object);
 
         var userRoot = getUserRootDirectory();
         var relativePathToUploadedFile = MinioUtils.getRelativePath(filePath, userRoot);
@@ -108,9 +109,9 @@ public class UserFileService {
         return getResourceInfo(relativePathToUploadedFile);
     }
 
-    public List<ResourceInfoResponseDto> uploadResources(String relativePath, List<MultipartFile> files) {
-        return files.stream()
-                .map(file -> uploadResource(relativePath, file))
+    public List<ResourceInfoResponseDto> uploadResources(String relativePath, List<MultipartFile> objects) {
+        return objects.stream()
+                .map(object -> uploadResource(relativePath, object))
                 .toList();
     }
 
@@ -128,7 +129,7 @@ public class UserFileService {
     private ResourceContextDto buildResourceContextDto(String relativePath) {
         var userRootDirectory = getUserRootDirectory();
         var bucket = minioClientProperties.getBucketName();
-        var absolutePath = userRootDirectory + relativePath;
+        var absolutePath = MinioUtils.getAbsolutePath(relativePath, userRootDirectory);
         var resourceType = minioRepository.resolveResourceType(bucket, absolutePath);
 
         return ResourceContextDto.builder()
@@ -142,7 +143,7 @@ public class UserFileService {
     private CopyResourceDto buildMoveResourceDto(String relativeSourcePath, String relativeDestinationPath) {
         var sourceContextDto = buildResourceContextDto(relativeSourcePath);
         var userRootDirectory = getUserRootDirectory();
-        var absoluteDestinationPath = userRootDirectory + relativeDestinationPath;
+        var absoluteDestinationPath = MinioUtils.getAbsolutePath(userRootDirectory, relativeDestinationPath);
 
         return new CopyResourceDto(sourceContextDto, absoluteDestinationPath);
     }
@@ -150,7 +151,7 @@ public class UserFileService {
     private ResourceLocationDto buildResourceLocationDto(String relativePath) {
         var userRootDirectory = getUserRootDirectory();
         var bucket = minioClientProperties.getBucketName();
-        var absolutePath = userRootDirectory + relativePath;
+        var absolutePath = MinioUtils.getAbsolutePath(relativePath, userRootDirectory);
 
         return new ResourceLocationDto(bucket, absolutePath);
     }

@@ -21,13 +21,15 @@ public class ResourcePathValidator {
     private final FileUploadProperties fileUploadProperties;
 
     private static final Pattern VALID_PATH_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)\\.\\.?(?:/|$))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$"
+            "^(?!.*(?:^|/)\\.\\.?(?:/|$))(?:[\\p{L}\\p{N} _.-]+/)*[\\p{L}\\p{N} _.-]+/?$|^$"
     );
+
     private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))([\\p{L}\\p{N}_.-]+/)+$"
+            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))([\\p{L}\\p{N} _.-]+/)+$|^$"
     );
+
     private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$"
+            "^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N} _.-]+/)*[\\p{L}\\p{N} _.-]+/?$|^$"
     );
 
     public void validatePathFormat(String path) {
@@ -58,10 +60,11 @@ public class ResourcePathValidator {
         }
     }
 
-    public void validateUploadResourcesFormat(String path, List<MultipartFile> files) {
+    public void validateUploadResourcesFormat(String path, List<MultipartFile> objets) {
         validateDirectoryPathFormat(path);
-        for (var file : files) {
-            validateMultipartFileFormat(file);
+        for (var object : objets) {
+            validatePathFormat(object.getOriginalFilename());
+            validateMultipartFileSize(object);
         }
     }
 
@@ -73,18 +76,6 @@ public class ResourcePathValidator {
             log.warn("[Validate] Mismatch in resource types: sourcePath='{}' (directory: {}), destinationPath='{}' (directory: {})",
                     sourcePath, isSourceDir, destinationPath, isDestinationDir);
             throw new InvalidResourcePathFormatException("Source and destination must both be files or both be directories");
-        }
-    }
-
-    private void validateMultipartFileFormat(MultipartFile file) {
-        validateMultipartFileNotEmpty(file);
-        validateMultipartFileSize(file);
-    }
-
-    private void validateMultipartFileNotEmpty(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            log.debug("[Validate] File is empty");
-            throw new InvalidMultipartFileException("File is empty");
         }
     }
 
@@ -100,21 +91,21 @@ public class ResourcePathValidator {
     }
 
     private boolean isValidPathFormat(String path) {
-        if (path == null || path.isBlank()) {
+        if (path == null) {
             return false;
         }
         return path.matches(String.valueOf(VALID_PATH_PATTERN));
     }
 
     private boolean isValidSearchQueryFormat(String query) {
-        if (query == null || query.isBlank()) {
+        if (query == null) {
             return false;
         }
         return query.matches(String.valueOf(VALID_SEARCH_QUERY_PATTERN));
     }
 
     public boolean isValidDirectoryPathFormat(String path) {
-        if (path == null || path.isBlank()) {
+        if (path == null) {
             return false;
         }
         return path.matches(String.valueOf(VALID_DIRECTORY_PATH_PATTERN));

@@ -43,8 +43,9 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
         var relativePath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
         var resourceName = MinioUtils.extractResourceName(resourceContextDto.relativePath());
         var resourceType = resourceContextDto.resourceType();
+        var size = 0L;
 
-        return resourceInfoMapper.toResourceInfo(relativePath, resourceName, null, resourceType);
+        return resourceInfoMapper.toResourceInfo(relativePath, resourceName, size, resourceType);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
 
     @Override
     public void deleteResource(ResourceContextDto resourceContextDto) {
-        resourceValidator.validateFileExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
+        resourceValidator.validateDirectoryExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
         minioRepository.deleteResources(resourceContextDto.bucket(), resourceContextDto.absolutePath());
     }
 

@@ -1,6 +1,7 @@
 package com.projects.filestorage.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.projects.filestorage.web.dto.internal.enums.ResourceType;
 import lombok.Builder;
 
@@ -10,5 +11,5 @@ public record ResourceInfoResponseDto(
         String path,
         String name,
         Long size,
-        ResourceType resourceType) {
+        @JsonProperty("type") ResourceType resourceType) {
 }

@@ -71,9 +71,9 @@ public class ResourceController {
 
     @PostMapping(value = "/resource")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<ResourceInfoResponseDto> uploadResources(@RequestParam("path") String path,
-                                                         @RequestParam("files") List<MultipartFile> files) {
-        resourcePathValidator.validateUploadResourcesFormat(path, files);
-        return userFileService.uploadResources(path, files);
+    public List<ResourceInfoResponseDto> uploadResource(@RequestParam("path") String path,
+                                                        @RequestParam("object") List<MultipartFile> objets) {
+        resourcePathValidator.validateUploadResourcesFormat(path, objets);
+        return userFileService.uploadResources(path, objets);
     }
 }
