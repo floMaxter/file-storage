@@ -6,20 +6,9 @@ import lombok.experimental.UtilityClass;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @UtilityClass
 public class MinioUtils {
-
-    private static final Pattern VALID_PATH_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)\\.\\.?(?:/|$))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$|^$"
-    );
-    private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))([\\p{L}\\p{N}_.-]+/)+$"
-    );
-    private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)(?:\\.|\\.\\.)($|/))(?:[\\p{L}\\p{N}_.-]+/)*[\\p{L}\\p{N}_.-]+/?$"
-    );
 
     public String extractResourceName(String path) {
         if (path == null || path.isBlank()) return "";
@@ -28,10 +17,6 @@ public class MinioUtils {
         var lastSegment = segments.getLast();
 
         return path.endsWith("/") ? lastSegment + "/" : lastSegment;
-    }
-
-    public String extractDirectoryName(String path) {
-        return extractResourceName(path) + "/";
     }
 
     public String extractParentPath(String path) {
@@ -73,26 +58,7 @@ public class MinioUtils {
         return path != null && !path.endsWith("/");
     }
 
-    public boolean isRootPath(String parentPath) {
-        return parentPath == null || parentPath.isBlank();
-    }
-
     public boolean isNoSuchKey(ErrorResponseException ex) {
         return ex.errorResponse().code().equals("NoSuchKey");
-    }
-
-    public boolean isValidPathFormat(String path) {
-        if (path == null || path.isBlank()) {
-            return false;
-        }
-        return path.matches(String.valueOf(VALID_PATH_PATTERN));
-    }
-
-    public boolean isValidDirectoryPathFormat(String path) {
-        return path.matches(String.valueOf(VALID_DIRECTORY_PATH_PATTERN));
-    }
-
-    public boolean isValidSearchQueryFormat(String query) {
-        return query.matches(String.valueOf(VALID_SEARCH_QUERY_PATTERN));
     }
 }
