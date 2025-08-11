@@ -60,7 +60,7 @@ public class DirectoryController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "The user is not authorized",
+                    description = "Unauthorized request",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponseDto.class))
@@ -113,7 +113,7 @@ public class DirectoryController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "The user is not authorized",
+                    description = "Unauthorized request",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ErrorResponseDto.class))
