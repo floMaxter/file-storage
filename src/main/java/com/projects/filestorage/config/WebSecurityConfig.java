@@ -46,6 +46,7 @@ public class WebSecurityConfig {
                                 "/registration",
                                 "/files/**"
                         ).permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/**").permitAll()
                         .requestMatchers("/api/**").authenticated())
                 .userDetailsService(defaultUserDetailsService)
                 .securityContext(context -> context
