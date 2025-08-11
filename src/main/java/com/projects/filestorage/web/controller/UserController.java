@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
-        name = "User Controller",
+        name = "Users",
         description = "Performs operations related to the user"
 )
 @RestController
@@ -40,18 +40,24 @@ public class UserController {
             @ApiResponse(
                     responseCode = "200",
                     description = "The current user has been successfully found",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = UserDto.class))
+            ),
             @ApiResponse(
                     responseCode = "401",
                     description = "The user is not authorized",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Unknown error",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))})
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            )
     })
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)

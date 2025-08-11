@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
-        name = "Authentication Controller",
+        name = "Authentication",
         description = "Registers, authorizes and logs the user out of the application"
 )
 @RestController
@@ -41,23 +41,31 @@ public class AuthController {
             @ApiResponse(
                     responseCode = "201",
                     description = "Successful user registration",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SignUpResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SignUpResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Validation exception",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Non-unique username",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Unknown error",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            )
     })
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
@@ -72,23 +80,31 @@ public class AuthController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Successful user authorization",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = SignInResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SignInResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Validation exception",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Invalid authorization data",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Unknown error",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            )
     })
     @PostMapping("/sign-in")
     @ResponseStatus(HttpStatus.OK)
@@ -107,13 +123,17 @@ public class AuthController {
             @ApiResponse(
                     responseCode = "401",
                     description = "The user is not authorized",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))}),
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Unknown error",
-                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ErrorResponseDto.class))})
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorResponseDto.class))
+            )
     })
     @PostMapping("/sign-out")
     @ResponseStatus(HttpStatus.NO_CONTENT)
