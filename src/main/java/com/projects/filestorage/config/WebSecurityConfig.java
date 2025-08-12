@@ -2,7 +2,7 @@ package com.projects.filestorage.config;
 
 import com.projects.filestorage.security.CustomAccessDeniedHandler;
 import com.projects.filestorage.security.CustomAuthenticationEntryPoint;
-import com.projects.filestorage.service.DefaultUserDetailsService;
+import com.projects.filestorage.security.DefaultUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +46,7 @@ public class WebSecurityConfig {
                                 "/registration",
                                 "/files/**"
                         ).permitAll()
-                        .requestMatchers("/api/storage/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/**").permitAll()
                         .requestMatchers("/api/**").authenticated())
                 .userDetailsService(defaultUserDetailsService)
                 .securityContext(context -> context

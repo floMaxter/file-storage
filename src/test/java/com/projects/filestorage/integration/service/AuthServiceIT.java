@@ -1,6 +1,6 @@
 package com.projects.filestorage.integration.service;
 
-import com.projects.filestorage.config.SessionProperties;
+import com.projects.filestorage.config.properties.SessionProperties;
 import com.projects.filestorage.domain.User;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;

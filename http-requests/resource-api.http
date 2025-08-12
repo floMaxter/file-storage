@@ -1,0 +1,76 @@
+
+# GET INFO REQUESTS
+
+### GET resource info (file)
+GET localhost:8080/api/resource?path=test/2.txt
+
+### GET resource info (directory)
+GET localhost:8080/api/resource?path=test/photos/
+
+### GET resource info (file), invalid path
+GET localhost:8080/api/resource?path=test//
+
+### GET resource info (file), resource not exists
+GET localhost:8080/api/resource?path=test2/1.txt
+
+# DELETE RESOURCE REQUEST
+
+### DELETE resource, valid path to file
+DELETE localhost:8080/api/resource?path=test/1.txt
+
+### DELETE resource, valid path to directory
+DELETE localhost:8080/api/resource?path=test/photo_4/
+
+### DELETE File, invalid path
+DELETE localhost:8080/api/resource?path=test//1.txt
+
+### DELETE File, empty path
+DELETE localhost:8080/api/resource?path=
+
+### DELETE File, resource not found
+DELETE localhost:8080/api/resource?path=test/1.txt
+
+# DOWNLOAD RESOURCE REQUEST
+
+### DOWNLOAD resource, valid path to file
+GET localhost:8080/api/resource/download?path=test/2.txt
+
+### DOWNLOAD resource, valid path to directory
+GET localhost:8080/api/resource/download?path=test/photos/
+
+### DOWNLOAD resource, invalid path
+GET localhost:8080/api/resource/download?path=test//
+
+### DOWNLOAD resource, empty path
+GET localhost:8080/api/resource/download?path=
+
+### DOWNLOAD resource, resource not found
+GET localhost:8080/api/resource/download?path=test2/
+
+# MOVE RESOURCE REQUESTS
+
+### MOVE resource, valid path to file
+GET localhost:8080/api/resource/move?from=test/photos/1.txt&to=test/photos_1/1.txt
+
+### MOVE resource, valid path to directory
+GET localhost:8080/api/resource/move?from=test/photos/&to=test/photos_empty/
+
+### MOVE resource, invalid path
+GET localhost:8080/api/resource/move?from=test//1.txt&to=test/inner/1.txt
+
+### MOVE resource, empty path
+GET localhost:8080/api/resource/move?from=test/1.txt&to=
+
+### MOVE resource, resource not found
+GET localhost:8080/api/resource/move?from=test/2.txt&to=test/inner/1.txt
+
+### MOVE resource, resource already exists
+GET localhost:8080/api/resource/move?from=test/1.txt&to=test/inner/1.txt
+
+# SEARCH RESOURCE REQUESTS
+
+### SEARCH resource, valid query
+GET localhost:8080/api/resource/search?query=test
+
+### SEARCH resource, invalid query
+GET localhost:8080/api/resource/search?query=test//
