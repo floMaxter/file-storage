@@ -34,11 +34,11 @@ public class MinioUtils {
         return String.format("user-%d-files/", userId);
     }
 
-    public String getAbsolutePath(String relativePath, String userRootDirectory) {
+    public String getAbsolutePath(String userRootDirectory, String relativePath) {
         return userRootDirectory + relativePath;
     }
 
-    public String getRelativePath(String absolutePath, String userRootDirectory) {
+    public String getRelativePath(String userRootDirectory, String absolutePath) {
         if (!absolutePath.startsWith(userRootDirectory)) {
             throw new IllegalArgumentException("Path does not start with user root directory");
         }
