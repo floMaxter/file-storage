@@ -140,7 +140,7 @@ public class UserFileService {
     private CopyResourceDto buildMoveResourceDto(String relativeSourcePath, String relativeDestinationPath) {
         var sourceContextDto = buildResourceContextDto(relativeSourcePath);
         var userRootDirectory = getUserRootDirectory();
-        var absoluteDestinationPath = MinioUtils.getAbsolutePath(userRootDirectory, relativeDestinationPath);
+        var absoluteDestinationPath = MinioUtils.getAbsolutePath(relativeDestinationPath, userRootDirectory);
 
         return new CopyResourceDto(sourceContextDto, absoluteDestinationPath);
     }
