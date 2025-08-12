@@ -83,10 +83,8 @@ public class DirectoryController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoResponseDto> getDirectoryInfo(@RequestParam("path")
-                                                          @Parameter(
-                                                                  required = true,
-                                                                  example = "/path/to/dir/"
-                                                          ) String path) {
+                                                          @Parameter(example = "/path/to/dir/", allowEmptyValue = true)
+                                                          String path) {
         resourcePathValidator.validateDirectoryPathFormat(path);
         return userFileService.getDirectoryInfo(path);
     }
@@ -144,10 +142,8 @@ public class DirectoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path")
-                                                              @Parameter(
-                                                                      required = true,
-                                                                      example = "/path/to/dir/"
-                                                              ) String path) {
+                                                              @Parameter(example = "/path/to/dir/")
+                                                              String path) {
         resourcePathValidator.validateDirectoryPathFormat(path);
         return userFileService.createEmptyDirectory(path);
     }
