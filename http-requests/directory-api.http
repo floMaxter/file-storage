@@ -2,7 +2,7 @@
 # GET DIRECTORY INFO REQUESTS
 
 ### GET directory info, valid path to directory
-GET localhost:8080/api/directory?path=test/
+GET localhost:8080/api/directory?path=
 
 ### GET directory info, directory not created
 GET localhost:8080/api/directory?path=test2/
