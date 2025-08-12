@@ -142,9 +142,9 @@ public class DirectoryController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path")
-                                                              @Parameter(example = "path/to/dir/")
+                                                              @Parameter(example = "path/to/dir/", allowEmptyValue = true)
                                                               String path) {
-        resourcePathValidator.validateDirectoryPathFormat(path);
+        resourcePathValidator.validateCreateEmptyDirectoryPathFormat(path);
         return userFileService.createEmptyDirectory(path);
     }
 }

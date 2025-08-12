@@ -68,6 +68,14 @@ public class ResourcePathValidator {
         }
     }
 
+    public void validateCreateEmptyDirectoryPathFormat(String path) {
+        if (isEmptyPath(path)) {
+            log.info("[Validate] Empty path for creation empty directory");
+            throw new InvalidResourcePathFormatException("The folder creation path must not be empty.");
+        }
+        validateDirectoryPathFormat(path);
+    }
+
     private void validateSamePathType(String sourcePath, String destinationPath) {
         boolean isSourceDir = MinioUtils.isPathDirectoryLike(sourcePath);
         boolean isDestinationDir = MinioUtils.isPathDirectoryLike(destinationPath);
@@ -109,5 +117,9 @@ public class ResourcePathValidator {
             return false;
         }
         return path.matches(String.valueOf(VALID_DIRECTORY_PATH_PATTERN));
+    }
+
+    public boolean isEmptyPath(String path) {
+        return path == null || path.trim().isBlank();
     }
 }
