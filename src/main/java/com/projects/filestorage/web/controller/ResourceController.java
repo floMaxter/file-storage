@@ -89,7 +89,7 @@ public class ResourceController {
     @GetMapping("/resource")
     @ResponseStatus(HttpStatus.OK)
     public ResourceInfoResponseDto getResourceInfo(@RequestParam("path")
-                                                   @Parameter(example = "/home/resource.txt", allowEmptyValue = true)
+                                                   @Parameter(example = "home/resource.txt", allowEmptyValue = true)
                                                    String path) {
         resourcePathValidator.validatePathFormat(path);
         return userFileService.getResourceInfo(path);
@@ -137,7 +137,7 @@ public class ResourceController {
     @DeleteMapping("/resource")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResource(@RequestParam("path")
-                               @Parameter(example = "/home/resource.txt", allowEmptyValue = true)
+                               @Parameter(example = "home/resource.txt", allowEmptyValue = true)
                                String path) {
         resourcePathValidator.validatePathFormat(path);
         userFileService.deleteResource(path);
@@ -185,7 +185,7 @@ public class ResourceController {
     })
     @GetMapping("/resource/download")
     public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam("path")
-                                                                  @Parameter(example = "/home/resource.txt", allowEmptyValue = true)
+                                                                  @Parameter(example = "home/resource.txt", allowEmptyValue = true)
                                                                   String path) {
         resourcePathValidator.validatePathFormat(path);
 
