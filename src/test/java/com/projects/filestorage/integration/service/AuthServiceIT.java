@@ -1,6 +1,6 @@
 package com.projects.filestorage.integration.service;
 
-import com.projects.filestorage.config.properties.SessionProperties;
+import com.projects.filestorage.config.properties.SessionCookieProperties;
 import com.projects.filestorage.domain.User;
 import com.projects.filestorage.exception.UnauthenticatedAccessException;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
@@ -41,7 +41,7 @@ public class AuthServiceIT {
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
     private final PasswordEncoder passwordEncoder;
-    private final SessionProperties sessionProperties;
+    private final SessionCookieProperties sessionCookieProperties;
 
     @ParameterizedTest(name = "Sign-up for {0}")
     @MethodSource("com.projects.filestorage.testdata.data.AuthTestData#getValidSignUpRequestDtos")
@@ -163,7 +163,7 @@ public class AuthServiceIT {
 
         var cookies = response.getCookies();
         assertThat(Arrays.stream(cookies)
-                .anyMatch(c -> c.getName().equals(sessionProperties.getCookie().getName())
+                .anyMatch(c -> c.getName().equals(sessionCookieProperties.getName())
                         && c.getMaxAge() == 0)).isTrue();
     }
 

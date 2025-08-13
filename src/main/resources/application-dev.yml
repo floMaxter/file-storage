@@ -1,7 +1,6 @@
 server:
   servlet:
     session:
-      timeout: 3600
       cookie:
         name: JSESSIONID
         http-only: true
@@ -9,13 +8,13 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env.dev[.properties]
   servlet:
     multipart:
       enabled: true
       max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:5MB}
       max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:15MB}
-  config:
-    import: optional:file:.env.dev[.properties]
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
@@ -29,6 +28,15 @@ spring:
     open-in-view: false
   flyway:
     schemas: ${POSTGRES_SCHEMA}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  session:
+    timeout: ${SESSION_TIMEOUT_SECONDS}
+    redis:
+      namespace: ${REDIS_NAMESPACE}
 
 minio:
   endpoint: http://${MINIO_HOST}:${MINIO_PORT}

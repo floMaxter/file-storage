@@ -1,10 +1,9 @@
 package com.projects.filestorage.security.session;
 
-import com.projects.filestorage.config.properties.SessionProperties;
+import com.projects.filestorage.config.properties.SessionCookieProperties;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,18 +11,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SessionManager {
 
-    private final SessionProperties sessionProperties;
-
-    public void applySessionTimeout(HttpSession session) {
-        session.setMaxInactiveInterval(sessionProperties.getTimeout());
-    }
+    private final SessionCookieProperties sessionCookieProperties;
 
     public void expireSessionCookie(HttpServletResponse response) {
-        var cookie = new Cookie(sessionProperties.getCookie().getName(), null);
+        var cookie = new Cookie(sessionCookieProperties.getName(), null);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        cookie.setHttpOnly(sessionProperties.getCookie().isHttpOnly());
-        cookie.setSecure(sessionProperties.getCookie().isSecure());
+        cookie.setHttpOnly(sessionCookieProperties.isHttpOnly());
+        cookie.setSecure(sessionCookieProperties.isSecure());
         response.addCookie(cookie);
     }
 

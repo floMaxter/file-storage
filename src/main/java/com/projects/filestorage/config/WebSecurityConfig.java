@@ -71,6 +71,4 @@ public class WebSecurityConfig {
     public SecurityContextRepository securityContextRepository() {
         return new HttpSessionSecurityContextRepository();
     }
-
-
 }
