@@ -65,7 +65,6 @@ public class AuthService {
 
         var authResult = securityContextManager.authenticate(username, password);
         securityContextManager.setupSecurityContext(authResult, request, response);
-        sessionManager.applySessionTimeout(request.getSession(true));
 
         log.info("[Success] Authenticated user and created HTTP session for username={}", username);
     }

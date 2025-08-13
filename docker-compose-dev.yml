@@ -33,10 +33,22 @@ services:
         mc policy set public local/filestorage;
         exit 0;
       "
+  file-storage-redis:
+    image: redis:latest
+    container_name: session-storage-redis
+    command: ["redis-server", "--requirepass", "password"]
+    env_file:
+      - .env.dev
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   postgres-data:
   minio-data:
+  redis-data:
 
 networks:
   file-storage-network:
