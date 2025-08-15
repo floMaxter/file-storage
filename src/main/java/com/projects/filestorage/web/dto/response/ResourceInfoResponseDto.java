@@ -6,13 +6,14 @@ import com.projects.filestorage.web.dto.internal.enums.ResourceType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
-@Schema(description = "Information about a resource (file or directory) in the fule system")
+@Schema(description = "Information about a resource (file or directory) in the file system")
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ResourceInfoResponseDto(
 
-        @Schema(description = "Absolute path to the resource", example = "/home/user/documents/report.pdf")
-        String path,
+        @Schema(description = "Path to the parent path", example = "/home/user/documents/")
+        @JsonProperty("path")
+        String parentPath,
 
         @Schema(description = "Name of the resource", example = "report.pdf")
         String name,
