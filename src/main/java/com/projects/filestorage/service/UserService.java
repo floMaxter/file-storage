@@ -2,9 +2,7 @@ package com.projects.filestorage.service;
 
 import com.projects.filestorage.domain.User;
 import com.projects.filestorage.exception.UserAlreadyExistsException;
-import com.projects.filestorage.exception.UserNotFoundException;
 import com.projects.filestorage.repository.UserRepository;
-import com.projects.filestorage.security.context.SecurityContextManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,19 +13,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserRoleService roleService;
-    private final SecurityContextManager securityContextManager;
-
-    @Transactional(readOnly = true)
-    public User getCurrentUserOrElseThrow() {
-        var username = securityContextManager.getCurrentUsername();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found", username)));
-    }
-
-    @Transactional(readOnly = true)
-    public Long getCurrentUserIdOrElseThrow() {
-        return getCurrentUserOrElseThrow().getId();
-    }
 
     @Transactional
     public User createUser(String username, String password) {

@@ -1,6 +1,6 @@
 package com.projects.filestorage.web.controller;
 
-import com.projects.filestorage.service.UserService;
+import com.projects.filestorage.security.CustomUserDetails;
 import com.projects.filestorage.web.dto.response.ErrorResponseDto;
 import com.projects.filestorage.web.dto.response.UserDto;
 import com.projects.filestorage.web.mapper.UserMapper;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
     private final UserMapper userMapper;
 
     @Operation(
@@ -61,8 +61,7 @@ public class UserController {
     })
     @GetMapping("/me")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto getCurrentUser() {
-        var userDto = userService.getCurrentUserOrElseThrow();
-        return userMapper.toDto(userDto);
+    public UserDto getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return userMapper.toDto(userDetails);
     }
 }

@@ -1,5 +1,6 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.security.CustomUserDetails;
 import com.projects.filestorage.service.UserFileService;
 import com.projects.filestorage.validation.ResourcePathValidator;
 import com.projects.filestorage.web.dto.response.ErrorResponseDto;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,9 +86,10 @@ public class DirectoryController {
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoResponseDto> getDirectoryInfo(@RequestParam("path")
                                                           @Parameter(example = "path/to/dir/", allowEmptyValue = true)
-                                                          String path) {
+                                                          String path,
+                                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validateDirectoryPathFormat(path);
-        return userFileService.getDirectoryInfo(path);
+        return userFileService.getDirectoryInfo(userDetails.getId(), path);
     }
 
     @Operation(
@@ -143,8 +146,9 @@ public class DirectoryController {
     @ResponseStatus(HttpStatus.CREATED)
     public List<ResourceInfoResponseDto> createEmptyDirectory(@RequestParam("path")
                                                               @Parameter(example = "path/to/dir/", allowEmptyValue = true)
-                                                              String path) {
+                                                              String path,
+                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validateCreateEmptyDirectoryPathFormat(path);
-        return userFileService.createEmptyDirectory(path);
+        return userFileService.createEmptyDirectory(userDetails.getId(), path);
     }
 }
