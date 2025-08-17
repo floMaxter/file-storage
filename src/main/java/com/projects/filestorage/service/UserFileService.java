@@ -42,8 +42,9 @@ public class UserFileService {
         );
 
         return objectPaths.stream()
-                .map(absPath -> MinioUtils.getRelativePath(resourceLocationDto.rootDirectory(), absPath))
-                .map(relPath -> getResourceInfo(userId, relPath))
+                .map(absolutePath -> MinioUtils.getRelativePath(resourceLocationDto.rootDirectory(), absolutePath))
+                .map(relativePath -> buildResourceContextDto(userId, relativePath))
+                .map(minioResourceDispatcher::getResourceInfo)
                 .toList();
     }
 
@@ -55,9 +56,10 @@ public class UserFileService {
         );
 
         return objectPaths.stream()
-                .map(absPath -> MinioUtils.getRelativePath(resourceLocationDto.rootDirectory(), absPath))
-                .filter(relPath -> MinioUtils.fileNameMatchesQuery(relPath, relativeQuery))
-                .map(relPath -> getResourceInfo(userId, relPath))
+                .map(absolutePath -> MinioUtils.getRelativePath(resourceLocationDto.rootDirectory(), absolutePath))
+                .filter(relativePath -> MinioUtils.fileNameMatchesQuery(relativePath, relativeQuery))
+                .map(relativePath -> buildResourceContextDto(userId, relativePath))
+                .map(minioResourceDispatcher::getResourceInfo)
                 .toList();
     }
 
