@@ -77,6 +77,9 @@ public class UserFileService {
 
     public void createUserRootDir(Long userId) {
         var userRootPath = MinioUtils.buildUserRootPath(userId);
+
+        resourceValidator.validateDirectoryDoesNotExits(minioClientProperties.getBucketName(), userRootPath);
+
         minioRepository.putEmptyDirectory(minioClientProperties.getBucketName(), userRootPath);
     }
 
