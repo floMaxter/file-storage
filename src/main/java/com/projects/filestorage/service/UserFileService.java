@@ -52,7 +52,7 @@ public class UserFileService {
         var resourceLocationDto = buildResourceLocationDto(userId, relativeQuery);
 
         var objectPaths = minioRepository.listRecursiveObjectPaths(
-                resourceLocationDto.bucket(), resourceLocationDto.absolutePath()
+                resourceLocationDto.bucket(), resourceLocationDto.rootDirectory()
         );
 
         return objectPaths.stream()
