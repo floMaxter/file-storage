@@ -12,6 +12,7 @@ import com.projects.filestorage.testdata.data.dto.TestResource;
 import com.projects.filestorage.testdata.data.dto.UploadedTestResource;
 import com.projects.filestorage.testutil.TestResourceFactory;
 import com.projects.filestorage.utils.MinioUtils;
+import com.projects.filestorage.web.dto.internal.enums.ResourceType;
 import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
@@ -30,8 +31,16 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static com.projects.filestorage.integration.service.TestConfig.Minio;
 import static com.projects.filestorage.integration.service.TestConfig.minio;
@@ -355,8 +364,94 @@ public class UserFileServiceIT {
                 .isInstanceOf(ResourceAlreadyExistsException.class);
     }
 
+    @ParameterizedTest(name = "Download file from path={0}. File exists.")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#downloadResourceValidFilePathAndMultipartFiles")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void downloadResource_WhenFileExists_ShouldReturnResourceDownloadDto(String relativePath,
+                                                                         MockMultipartFile object) throws IOException {
+        // given
+        var relativeParentPath = MinioUtils.extractParentPath(relativePath);
+        var expectedResourceInfo = userFileService.uploadResource(
+                testUser.getId(),
+                relativeParentPath,
+                object
+        );
+
+        // when
+        var actualResourceDownloadDto = userFileService.downloadResource(testUser.getId(), relativePath);
+
+        // then
+        assertThat(actualResourceDownloadDto.fileName())
+                .isEqualTo(expectedResourceInfo.name());
+
+        var outputStream = new ByteArrayOutputStream();
+        actualResourceDownloadDto.responseBody().writeTo(outputStream);
+        var downloadedBytes = outputStream.toByteArray();
+
+        assertThat(downloadedBytes)
+                .isEqualTo(object.getBytes());
+    }
+
+    @ParameterizedTest(name = "Download directory from path={0}. Directory exists.")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#downloadResourceValidDirectoryPathAndListOfInnerResources")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void downloadResource_WhenDirectoryExists_ShouldReturnResourceDownloadDto(String relativePath,
+                                                                              List<MockMultipartFile> objects) throws IOException {
+        // given
+        objects.forEach(object -> userFileService.uploadResource(testUser.getId(), relativePath, object));
+
+        var expectedDirectoryName = Paths.get(relativePath).getFileName().toString() + ".zip";
+
+        // when
+        var actualResourceDownloadDto = userFileService.downloadResource(testUser.getId(), relativePath);
+
+        // then
+        assertThat(actualResourceDownloadDto.fileName())
+                .isEqualTo(expectedDirectoryName);
+
+        var outputStream = new ByteArrayOutputStream();
+        actualResourceDownloadDto.responseBody().writeTo(outputStream);
+        var downloadedBytes = outputStream.toByteArray();
+
+        try (var zipInputStream = new ZipInputStream(new ByteArrayInputStream(downloadedBytes))) {
+            var extractedFiles = new HashMap<String, byte[]>();
+            ZipEntry entry;
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                var baos = new ByteArrayOutputStream();
+                zipInputStream.transferTo(baos);
+                extractedFiles.put(entry.getName(), baos.toByteArray());
+            }
+
+            assertThat(extractedFiles.keySet())
+                    .containsExactlyInAnyOrderElementsOf(
+                            objects.stream()
+                                    .map(MockMultipartFile::getOriginalFilename)
+                                    .toList()
+                    );
+
+            for (var expected : objects) {
+                assertThat(extractedFiles.get(expected.getOriginalFilename()))
+                        .isEqualTo(expected.getBytes());
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "Download resource {0}. Resource does not exist.")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#getValidTestResources")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void downloadResource_WhenResourceDoesNotExist_ShouldThrowResourceNotFoundException(TestResource testResource) {
+        assertThatThrownBy(() -> userFileService.downloadResource(testUser.getId(), testResource.relativePath()))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
     @ParameterizedTest(name = "Upload valid resource {1} by path={0}")
-    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourceValidPathAndMultipartFiles")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourceValidPathAndMultipartFile")
     @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
     @Transactional
     @Rollback
@@ -372,7 +467,8 @@ public class UserFileServiceIT {
 
         // then
         assertThat(actualResourceInfo)
-                .extracting(ResourceInfoResponseDto::parentPath,
+                .extracting(
+                        ResourceInfoResponseDto::parentPath,
                         ResourceInfoResponseDto::name,
                         ResourceInfoResponseDto::size)
                 .containsExactly(
@@ -388,11 +484,11 @@ public class UserFileServiceIT {
     }
 
     @ParameterizedTest(name = "Upload resource {1} by path={0}. Resource already exists.")
-    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourceValidPathAndMultipartFiles")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourceValidPathAndMultipartFile")
     @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
     @Transactional
     @Rollback
-    void uploadResourceWhenResourceAlreadyExists_ShouldThrowResourceAlreadyExistsException(String relativeDirPath,
+    void uploadResource_WhenResourceAlreadyExists_ShouldThrowResourceAlreadyExistsException(String relativeDirPath,
                                                                                            MockMultipartFile object) {
         // given
         var userRootPath = MinioUtils.buildUserRootPath(testUser.getId());
@@ -406,24 +502,107 @@ public class UserFileServiceIT {
                 .isInstanceOf(ResourceAlreadyExistsException.class);
     }
 
+    @ParameterizedTest(name = "Upload valid resources in directory by path={0}")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourcesValidPathAndMultipartFiles")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void uploadResources_WhenValidResources_ShouldReturnListCorrectInfo(String relativeDirPath,
+                                                                        List<MultipartFile> objects) throws Exception {
+        // given
+        var userRootDir = MinioUtils.buildUserRootPath(testUser.getId());
+        var expectedResourceInfos = objects.stream()
+                .map(obj -> {
+                    var relativeResourcePath = relativeDirPath + obj.getOriginalFilename();
+                    var relativeParentPath = MinioUtils.extractParentPath(relativeResourcePath);
+
+                    return new ResourceInfoResponseDto(
+                            relativeParentPath,
+                            obj.getOriginalFilename(),
+                            obj.getSize(),
+                            ResourceType.FILE
+                    );
+                })
+                .toList();
+
+        // when
+        var actualResourceInfos = userFileService.uploadResources(testUser.getId(), relativeDirPath, objects);
+
+        // then
+        assertThat(actualResourceInfos)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrderElementsOf(expectedResourceInfos);
+
+        for (var object : objects) {
+            var relativePath = relativeDirPath + object.getOriginalFilename();
+            var absolutePath = MinioUtils.getAbsolutePath(userRootDir, relativePath);
+
+            try (var inputStream = minioRepository.getObject(minioClientProperties.getBucketName(), absolutePath)) {
+                var downloadedBytes = inputStream.readAllBytes();
+                assertThat(downloadedBytes).isEqualTo(object.getBytes());
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "Upload valid resources in directory by path={0}. Resources already exist.")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#uploadResourcesValidPathAndMultipartFiles")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void uploadResources_WhenResourcesAlreadyExist_ShouldThrowResourceAlreadyExistsException(String relativeDirPath,
+                                                                                             List<MultipartFile> objects) {
+        // given
+        var userRootDir = MinioUtils.buildUserRootPath(testUser.getId());
+        objects.forEach(obj -> {
+            var relativePath = relativeDirPath + obj.getOriginalFilename();
+            var absolutePath = MinioUtils.getAbsolutePath(userRootDir, relativePath);
+
+            minioRepository.uploadResource(minioClientProperties.getBucketName(), absolutePath, obj);
+        });
+
+        // then
+        assertThatThrownBy(() -> userFileService.uploadResources(testUser.getId(), relativeDirPath, objects))
+                .isInstanceOf(ResourceAlreadyExistsException.class);
+    }
+
     @ParameterizedTest(name = "Delete resource by path={0}. Resource exists.")
-    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#getValidTestResources")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#deleteResourceValidTestResources")
     @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
     @Transactional
     @Rollback
     void deleteResource_WhenResourceExists_ShouldDeleteResource(TestResource testResource) {
         // given
+        var userRootDir = MinioUtils.buildUserRootPath(testUser.getId());
+        var parentPath = MinioUtils.extractParentPath(testResource.relativePath());
+        var absoluteParentPath = MinioUtils.getAbsolutePath(userRootDir, parentPath);
+
         testResourceFactory.uploadTestResource(testUser.getId(), testResource);
 
         // when
         userFileService.deleteResource(testUser.getId(), testResource.relativePath());
 
         // then
-        if (testResource.isDirectory()) {
-            assertThat(minioRepository.isDirectoryExists(minioClientProperties.getBucketName(), testResource.relativePath()))
+        deleteResource_AssertNotExists(testResource);
+        assertThat(minioRepository.isDirectoryExists(minioClientProperties.getBucketName(), absoluteParentPath))
+                .isTrue();
+    }
+
+    @ParameterizedTest(name = "Delete resource by path={0}. Resource does not exist.")
+    @MethodSource("com.projects.filestorage.testdata.data.MinioTestData#deleteResourceValidTestResources")
+    @WithMockUser(username = Minio.MINI0_TEST_USERNAME, password = Minio.MINIO_TEST_PASSWORD)
+    @Transactional
+    @Rollback
+    void deleteResource_WhenResourceDoesNotExist_ShouldThrowResourceNotFoundException(TestResource testResource) {
+        assertThatThrownBy(() -> userFileService.deleteResource(testUser.getId(), testResource.relativePath()))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    void deleteResource_AssertNotExists(TestResource resource) {
+        if (resource.isDirectory()) {
+            assertThat(minioRepository.isDirectoryExists(minioClientProperties.getBucketName(), resource.relativePath()))
                     .isFalse();
         } else {
-            assertThat(minioRepository.isFileExists(minioClientProperties.getBucketName(), testResource.relativePath()))
+            assertThat(minioRepository.isFileExists(minioClientProperties.getBucketName(), resource.relativePath()))
                     .isFalse();
         }
     }

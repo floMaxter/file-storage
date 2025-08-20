@@ -268,11 +268,74 @@ public class MinioTestData {
         );
     }
 
-    public static Stream<Arguments> uploadResourceValidPathAndMultipartFiles() {
+    public static Stream<Arguments> uploadResourceValidPathAndMultipartFile() {
         return Stream.of(
                 Arguments.of("folder1/", mockFile("1.txt", "Content from folder1/1.txt")),
                 Arguments.of("folder1/inner_folder1/", mockFile("2.txt", "Content from folder1/inner_folder1/2.txt")),
                 Arguments.of("folder1/inner_folder1/inner_folder2/", mockFile("3.txt", "Content from folder1/inner_folder1/inner_folder2/3.txt"))
+        );
+    }
+
+    public static Stream<Arguments> uploadResourcesValidPathAndMultipartFiles() {
+        return Stream.of(
+                Arguments.of(
+                        "folder1/",
+                        List.of(
+                                mockFile("1.txt", "Content from folder1/1.txt"),
+                                mockFile("2.txt", "Content from folder1/2.txt"),
+                                mockFile("3.txt", "Content from folder1/3.txt")
+                        )
+                ),
+                Arguments.of(
+                        "folder1/inner_folder1/",
+                        List.of(
+                                mockFile("1.txt", "Content from folder1/inner_folder1/1.txt"),
+                                mockFile("2.txt", "Content from folder1/inner_folder1/2.txt"),
+                                mockFile("3.txt", "Content from folder1/inner_folder1/3.txt")
+                        )
+                ),
+                Arguments.of(
+                        "folder1/inner_folder1/inner_folder2/",
+                        List.of(
+                                mockFile("1.txt", "Content from folder1/inner_folder1/inner_folder2/1.txt"),
+                                mockFile("2.txt", "Content from folder1/inner_folder1/inner_folder2/2.txt"),
+                                mockFile("3.txt", "Content from folder1/inner_folder1/inner_folder2/3.txt")
+                        )
+                )
+        );
+    }
+
+    public static Stream<Arguments> downloadResourceValidFilePathAndMultipartFiles() {
+        return Stream.of(
+                Arguments.of("folder1/1.txt", mockFile("1.txt", "Content from folder1/1.txt")),
+                Arguments.of("folder1/inner_folder1/2.txt", mockFile("2.txt", "Content from folder1/inner_folder1/2.txt")),
+                Arguments.of("folder1/inner_folder1/inner_folder2/3.txt", mockFile("3.txt", "Content from folder1/inner_folder1/inner_folder2/3.txt"))
+        );
+    }
+
+    public static Stream<Arguments> downloadResourceValidDirectoryPathAndListOfInnerResources() {
+        return Stream.of(
+                Arguments.of(
+                        "folder1/",
+                        List.of(
+                                mockFile("file1.txt", "Hello from file1.txt"),
+                                mockFile("file2.txt", "Hello from file2.txt"),
+                                mockFile("inner_folder/file3.txt", "Hello from inner_folder/file3.txt")
+                        )
+                )
+        );
+    }
+
+    public static Stream<TestResource> deleteResourceValidTestResources() {
+        return Stream.of(
+                TestResource.file("parent_directory/1.txt", "Hello from parent_directory/1.txt"),
+                TestResource.file("folder1/1.txt", "Hello folder1/1.txt"),
+                TestResource.file("folder1/2.txt", "Hello folder1/2.txt"),
+                TestResource.file("folder1/folder2/1.txt", "Hello folder1/folder2/1.txt"),
+                TestResource.file("folder1/folder2/folder3/1.txt", "Hello folder1/folder2/folder3/1.txt"),
+                TestResource.directory("parent_directory/folder2/"),
+                TestResource.directory("folder3/folder4/"),
+                TestResource.directory("folder4/folder5/folder6/")
         );
     }
 
