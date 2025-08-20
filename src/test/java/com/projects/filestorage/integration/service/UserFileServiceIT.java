@@ -14,9 +14,6 @@ import com.projects.filestorage.testutil.TestResourceFactory;
 import com.projects.filestorage.utils.MinioUtils;
 import com.projects.filestorage.web.dto.internal.enums.ResourceType;
 import com.projects.filestorage.web.dto.response.ResourceInfoResponseDto;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +24,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,7 +38,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.projects.filestorage.integration.service.TestConfig.Minio;
-import static com.projects.filestorage.integration.service.TestConfig.minio;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -52,43 +46,14 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 @ActiveProfiles("test")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class UserFileServiceIT {
-
-    private User testUser;
-
-    @DynamicPropertySource
-    static void minioProperties(DynamicPropertyRegistry registry) {
-        registry.add(Minio.PROP_MINIO_ENDPOINT,
-                () -> Minio.MINIO_HTTP_PROTOCOL + minio.getHost() + ":" + minio.getFirstMappedPort()
-        );
-        registry.add(Minio.PROP_MINIO_ACCESS_KEY, () -> Minio.MINIO_ACCESS_KEY);
-        registry.add(Minio.PROP_MINIO_SECRET_KEY, () -> Minio.MINIO_SECRET_KEY);
-        registry.add(Minio.PROP_MINIO_BUCKET_NAME, () -> Minio.MINIO_BUCKET_NAME);
-    }
+public class UserFileServiceIT extends AbstractIntegrationTest {
 
     private final UserFileService userFileService;
     private final UserService userService;
     private final MinioRepository minioRepository;
     private final MinioClientProperties minioClientProperties;
     private final TestResourceFactory testResourceFactory;
-
-    @BeforeEach
-    void setupBucket() throws Exception {
-        var minioClient = MinioClient.builder()
-                .endpoint(minioClientProperties.getEndpoint())
-                .credentials(minioClientProperties.getAccessKey(), minioClientProperties.getSecretKey())
-                .build();
-
-        if (!minioClient.bucketExists(BucketExistsArgs.builder()
-                .bucket(minioClientProperties.getBucketName())
-                .build())) {
-            minioClient.makeBucket(MakeBucketArgs.builder()
-                    .bucket(minioClientProperties.getBucketName())
-                    .build());
-        }
-
-        minioClient.close();
-    }
+    private User testUser;
 
     @BeforeEach
     void setTestUser() {

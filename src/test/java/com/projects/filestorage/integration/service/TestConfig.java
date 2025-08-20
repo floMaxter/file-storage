@@ -16,11 +16,17 @@ public class TestConfig {
         return new PostgreSQLContainer<>(Postgres.POSTGRES_IMAGE);
     }
 
+    @Bean
+    @ServiceConnection(name = "redis")
+    public GenericContainer<?> redisContainer() {
+        return new GenericContainer<>(Redis.REDIS_IMAGE).withExposedPorts(Redis.REDIS_PORT);
+    }
+
     public static final GenericContainer<?> minio = new GenericContainer<>(Minio.MINIO_IMAGE)
-            .withEnv("MINIO_ACCESS_KEY", "test_admin")
-            .withEnv("MINIO_SECRET_KEY", "test_admin_password")
-            .withCommand("server /data")
-            .withExposedPorts(9000);
+            .withEnv(Minio.ENV_MINIO_ROOT_USER, Minio.MINIO_ACCESS_KEY)
+            .withEnv(Minio.ENV_MINIO_ROOT_PASSWORD, Minio.MINIO_SECRET_KEY)
+            .withCommand(Minio.MINIO_START_COMMANDS)
+            .withExposedPorts(Minio.ENV_MINIO_PORT);
 
     static {
         minio.start();
@@ -28,6 +34,10 @@ public class TestConfig {
 
     public static class Minio {
         public static final DockerImageName MINIO_IMAGE = DockerImageName.parse("minio/minio:latest");
+
+        public static final String ENV_MINIO_ROOT_USER = "MINIO_ACCESS_KEY";
+        public static final String ENV_MINIO_ROOT_PASSWORD = "MINIO_SECRET_KEY";
+        public static final int ENV_MINIO_PORT = 9000;
 
         public static final String PROP_MINIO_ENDPOINT = "minio.endpoint";
         public static final String PROP_MINIO_ACCESS_KEY = "minio.access-key";
@@ -39,11 +49,22 @@ public class TestConfig {
         public static final String MINIO_BUCKET_NAME = "test-user-files";
         public static final String MINIO_HTTP_PROTOCOL = "http://";
 
+        public static final String MINIO_START_COMMANDS = "server /data";
+
         public static final String MINI0_TEST_USERNAME = "test_username";
         public static final String MINIO_TEST_PASSWORD = "test_password";
     }
 
     public static class Postgres {
         public static final DockerImageName POSTGRES_IMAGE = DockerImageName.parse("postgres:16.0");
+    }
+
+    public static class Redis {
+        public static final DockerImageName REDIS_IMAGE = DockerImageName.parse("redis:7.0");
+
+        public static final String PROP_REDIS_HOST = "spring.data.redis.host";
+        public static final String PROP_REDIS_PORT = "spring.data.redis.port";
+
+        public static final int REDIS_PORT = 6379;
     }
 }
