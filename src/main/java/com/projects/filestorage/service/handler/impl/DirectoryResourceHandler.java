@@ -18,6 +18,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -88,7 +89,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
                 resourceContextDto.absolutePath()
         );
 
-        var resourceName = MinioUtils.extractResourceName(resourceContextDto.absolutePath()) + ".zip";
+        var downloadedDirectoryName = Paths.get(resourceContextDto.absolutePath()).getFileName().toString() + ".zip";
         StreamingResponseBody downloadedBody = outputStream -> createZipArchive(
                 resourceContextDto,
                 objectPaths,
@@ -96,7 +97,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
         );
 
         return ResourceDownloadDto.builder()
-                .fileName(resourceName)
+                .fileName(downloadedDirectoryName)
                 .responseBody(downloadedBody)
                 .build();
     }
