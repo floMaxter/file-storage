@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest(classes = TestConfig.class)
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-public class AuthServiceIT {
+public class AuthServiceIT extends AbstractIntegrationTest {
 
     private final AuthService authService;
     private final UserService userService;

@@ -30,12 +30,12 @@ public class FileResourceHandler implements MinioResourceHandler {
     public ResourceInfoResponseDto getResourceInfo(ResourceContextDto resourceContextDto) {
         resourceValidator.validateFileExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
 
-        var relativePath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
+        var relativeParentPath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
         var resourceName = MinioUtils.extractResourceName(resourceContextDto.relativePath());
         var size = minioRepository.getResourceSize(resourceContextDto.bucket(), resourceContextDto.absolutePath());
         var resourceType = resourceContextDto.resourceType();
 
-        return resourceInfoMapper.toResourceInfo(relativePath, resourceName, size, resourceType);
+        return resourceInfoMapper.toResourceInfo(relativeParentPath, resourceName, size, resourceType);
     }
 
     @Override

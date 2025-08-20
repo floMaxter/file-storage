@@ -1,5 +1,6 @@
 package com.projects.filestorage.web.controller;
 
+import com.projects.filestorage.security.CustomUserDetails;
 import com.projects.filestorage.service.UserFileService;
 import com.projects.filestorage.validation.ResourcePathValidator;
 import com.projects.filestorage.web.dto.response.ErrorResponseDto;
@@ -19,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,9 +94,10 @@ public class ResourceController {
     @ResponseStatus(HttpStatus.OK)
     public ResourceInfoResponseDto getResourceInfo(@RequestParam("path")
                                                    @Parameter(example = "home/resource.txt", allowEmptyValue = true)
-                                                   String path) {
+                                                   String path,
+                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validatePathFormat(path);
-        return userFileService.getResourceInfo(path);
+        return userFileService.getResourceInfo(userDetails.getId(), path);
     }
 
     @Operation(
@@ -140,9 +143,10 @@ public class ResourceController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteResource(@RequestParam("path")
                                @Parameter(example = "home/resource.txt", allowEmptyValue = true)
-                               String path) {
+                               String path,
+                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validatePathFormat(path);
-        userFileService.deleteResource(path);
+        userFileService.deleteResource(userDetails.getId(), path);
     }
 
     @Operation(
@@ -188,10 +192,11 @@ public class ResourceController {
     @GetMapping("/resource/download")
     public ResponseEntity<StreamingResponseBody> downloadResource(@RequestParam("path")
                                                                   @Parameter(example = "home/resource.txt", allowEmptyValue = true)
-                                                                  String path) {
+                                                                  String path,
+                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validatePathFormat(path);
 
-        var resourceDownloadDto = userFileService.downloadResource(path);
+        var resourceDownloadDto = userFileService.downloadResource(userDetails.getId(), path);
         var contentDisposition = ContentDisposition.attachment()
                 .filename(resourceDownloadDto.fileName(), StandardCharsets.UTF_8)
                 .build();
@@ -257,9 +262,11 @@ public class ResourceController {
 
                                                 @RequestParam("to")
                                                 @Parameter(example = "folder2/resource.txt", allowEmptyValue = true)
-                                                String destinationPath) {
+                                                String destinationPath,
+
+                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validateMovePathsFormat(sourcePath, destinationPath);
-        return userFileService.moveResource(sourcePath, destinationPath);
+        return userFileService.moveResource(userDetails.getId(), sourcePath, destinationPath);
     }
 
     @Operation(
@@ -302,9 +309,10 @@ public class ResourceController {
     @ResponseStatus(HttpStatus.OK)
     public List<ResourceInfoResponseDto> searchResources(@RequestParam("query")
                                                          @Parameter(example = "folder1/resource", allowEmptyValue = true)
-                                                         String query) {
+                                                         String query,
+                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         resourcePathValidator.validateSearchQueryFormat(query);
-        return userFileService.searchResources(query);
+        return userFileService.searchResources(userDetails.getId(), query);
     }
 
     @Operation(
@@ -356,11 +364,13 @@ public class ResourceController {
                                                         @Parameter(example = "folder1/", allowEmptyValue = true)
                                                         String path,
 
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails,
+
                                                         @RequestPart("object")
                                                         @Parameter(
                                                                 description = "List of files to upload. Example: select multiple files in the form-data field named 'object'"
                                                         ) List<MultipartFile> objects) {
         resourcePathValidator.validateUploadResourcesFormat(path, objects);
-        return userFileService.uploadResources(path, objects);
+        return userFileService.uploadResources(userDetails.getId(), path, objects);
     }
 }

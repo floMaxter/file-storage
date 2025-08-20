@@ -18,6 +18,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,12 +41,12 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
     public ResourceInfoResponseDto getResourceInfo(ResourceContextDto resourceContextDto) {
         resourceValidator.validateDirectoryExists(resourceContextDto.bucket(), resourceContextDto.absolutePath());
 
-        var relativePath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
+        var relativeParentPath = MinioUtils.extractParentPath(resourceContextDto.relativePath());
         var resourceName = MinioUtils.extractResourceName(resourceContextDto.relativePath());
         var resourceType = resourceContextDto.resourceType();
         var size = 0L;
 
-        return resourceInfoMapper.toResourceInfo(relativePath, resourceName, size, resourceType);
+        return resourceInfoMapper.toResourceInfo(relativeParentPath, resourceName, size, resourceType);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
                 resourceContextDto.absolutePath()
         );
 
-        var resourceName = MinioUtils.extractResourceName(resourceContextDto.absolutePath()) + ".zip";
+        var downloadedDirectoryName = Paths.get(resourceContextDto.absolutePath()).getFileName().toString() + ".zip";
         StreamingResponseBody downloadedBody = outputStream -> createZipArchive(
                 resourceContextDto,
                 objectPaths,
@@ -96,7 +97,7 @@ public class DirectoryResourceHandler implements MinioResourceHandler {
         );
 
         return ResourceDownloadDto.builder()
-                .fileName(resourceName)
+                .fileName(downloadedDirectoryName)
                 .responseBody(downloadedBody)
                 .build();
     }

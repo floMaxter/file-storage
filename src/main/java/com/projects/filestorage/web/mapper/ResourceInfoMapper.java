@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourceInfoMapper {
 
-    public ResourceInfoResponseDto toResourceInfo(String relativePath,
+    public ResourceInfoResponseDto toResourceInfo(String parentPath,
                                                   String name,
                                                   Long size,
                                                   ResourceType resourceType) {
         return ResourceInfoResponseDto.builder()
-                .path(relativePath)
+                .parentPath(parentPath)
                 .name(name)
                 .size(size)
                 .resourceType(resourceType)

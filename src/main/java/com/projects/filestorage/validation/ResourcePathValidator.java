@@ -25,7 +25,9 @@ public class ResourcePathValidator {
     );
 
     private static final Pattern VALID_DIRECTORY_PATH_PATTERN = Pattern.compile(
-            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))([\\p{L}\\p{N} _.-]+/)+$|^$"
+            "^(?!.*(?:^|/)(\\.{1,2})(?:/|$))" +          // запрещаем . и ..
+                    "(?!.*(?:^|/)(\\.\\.[^/]*)(?:/|$))" +       // запрещаем сегменты вроде ..что-то
+                    "(([\\p{L}\\p{N}_.][\\p{L}\\p{N} _.-]*/)*$|^$)" // сегменты могут начинаться с буквы, цифры, _ или .
     );
 
     private static final Pattern VALID_SEARCH_QUERY_PATTERN = Pattern.compile(
