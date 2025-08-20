@@ -44,6 +44,7 @@ public class User implements BaseEntity<Long> {
     @JoinTable(schema = "file_storage", name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     public User(String username, String password) {
