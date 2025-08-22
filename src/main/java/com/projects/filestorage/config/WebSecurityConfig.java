@@ -4,6 +4,7 @@ import com.projects.filestorage.security.CustomAccessDeniedHandler;
 import com.projects.filestorage.security.CustomAuthenticationEntryPoint;
 import com.projects.filestorage.security.DefaultUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,14 +32,17 @@ public class WebSecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         return http
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .csrf(AbstractHttpConfigurer::disable)
                 .requestCache(RequestCacheConfigurer::disable)
-                .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authRequest -> authRequest
                         .requestMatchers(HttpMethod.POST, "/api/auth/sign-in").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/sign-up").permitAll()
@@ -72,7 +76,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         var corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:8081"));
+        corsConfiguration.setAllowedOrigins(List.of(frontendUrl));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setAllowCredentials(true);

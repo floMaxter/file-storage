@@ -1,4 +1,14 @@
 services:
+  file-storage-frontend:
+    build:
+      context: ./frontend/roadmap-cloud-storage-frontend-master/
+      dockerfile: Dockerfile
+    container_name: file-storage-frontend
+    ports:
+      - "8086:80"
+    networks:
+      - file-storage-network
+
   file-storage-postgres-db:
     image: postgres:15-alpine
     container_name: file-storage-postgres-db
@@ -10,6 +20,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - file-storage-network
+
   file-storage-minio:
     image: minio/minio
     container_name: file-storage-minio
@@ -21,18 +32,24 @@ services:
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
+    networks:
+      - file-storage-network
+
   minio-create-buckets:
     image: minio/mc
     depends_on:
       - file-storage-minio
+    networks:
+      - file-storage-network
     entrypoint: >
       /bin/sh -c "
         sleep 5;
         mc alias set local http://file-storage-minio:9000 admin password;
         mc mb -p local/user-files;
-        mc policy set public local/filestorage;
+        mc policy set public local/user-files;
         exit 0;
       "
+
   file-storage-redis:
     image: redis:latest
     container_name: session-storage-redis
@@ -44,6 +61,8 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - file-storage-network
 
 volumes:
   postgres-data:
