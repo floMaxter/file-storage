@@ -1,0 +1,87 @@
+services:
+  file-storage-frontend:
+    build:
+      context: ./frontend/roadmap-cloud-storage-frontend-master/
+      dockerfile: Dockerfile
+    container_name: file-storage-frontend
+    ports:
+      - "8086:80"
+    networks:
+      - file-storage-network
+
+  file-storage-postgres-db:
+    image: postgres:15-alpine
+    container_name: file-storage-postgres-db
+    env_file:
+      - .env.dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - file-storage-network
+
+  file-storage-minio:
+    image: minio/minio
+    container_name: file-storage-minio
+    env_file:
+      - .env.dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: ["server", "--console-address", ":9001", "/data"]
+    networks:
+      - file-storage-network
+
+  minio-create-buckets:
+    image: minio/mc
+    depends_on:
+      - file-storage-minio
+    env_file:
+      - .env.dev
+    networks:
+      - file-storage-network
+    entrypoint: >
+      /bin/sh -c '
+        set -e
+        i=0
+        until mc alias set local http://$$MINIO_HOST_CONTAINER:$$MINIO_PORT $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD; do
+          echo "Waiting for MinIO..."
+          i=$$((i+1))
+          [ $$i -gt 30 ] && echo "MinIO is not ready" && exit 1
+          sleep 2
+        done
+
+        mc mb -p local/$$MINIO_BUCKET_NAME || true
+        mc anonymous set public local/$$MINIO_BUCKET_NAME || mc policy set public local/$$MINIO_BUCKET_NAME || true
+        exit 0
+      '
+
+  file-storage-redis:
+    image: redis:latest
+    container_name: session-storage-redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
+    env_file:
+      - .env.dev
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - file-storage-network
+
+volumes:
+  postgres-data:
+  minio-data:
+  redis-data:
+
+networks:
+  file-storage-network:
+    driver: bridge
+
+

@@ -1,0 +1,24 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Java
+*.class
+
+# Logs
+logs/
+*.log
+*.out
+
+# Environment variables
+.env*
+!.env.dev
+!.env.local-docker
+!.env.prod-example

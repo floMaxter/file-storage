@@ -1,0 +1,61 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'io.freefair.lombok' version '8.14'
+}
+
+group = 'com.projects.filestorage'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	minioVersion = '8.5.17'
+	commonsLang3Version = '3.18.0'
+	springdocVersion = '2.8.9'
+}
+
+dependencies {
+	// Spring
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion"
+
+	// Database
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// S3
+	implementation "io.minio:minio:$minioVersion"
+	implementation "org.apache.commons:commons-lang3:$commonsLang3Version"
+
+	// Migration
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	// Redis
+	implementation "org.springframework.boot:spring-boot-starter-data-redis"
+	implementation "org.springframework.session:spring-session-data-redis"
+
+	// Tests
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.testcontainers:postgresql'
+	testImplementation 'org.assertj:assertj-core'
+	testImplementation 'org.testcontainers:junit-jupiter'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
