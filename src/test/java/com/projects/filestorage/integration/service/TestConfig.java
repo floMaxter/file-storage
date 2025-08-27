@@ -61,10 +61,6 @@ public class TestConfig {
 
     public static class Redis {
         public static final DockerImageName REDIS_IMAGE = DockerImageName.parse("redis:7.0");
-
-        public static final String PROP_REDIS_HOST = "spring.data.redis.host";
-        public static final String PROP_REDIS_PORT = "spring.data.redis.port";
-
         public static final int REDIS_PORT = 6379;
     }
 }

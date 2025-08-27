@@ -2,3 +2,5 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/test-migration
+frontend:
+  url: http://localhost:8081

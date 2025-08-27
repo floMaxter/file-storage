@@ -5,11 +5,13 @@ server:
         name: JSESSIONID
         http-only: true
         secure: false
-  port: 8080
+  port: ${SPRING_SERVER_PORT}
 
 spring:
   config:
     import: optional:file:.env.dev[.properties]
+    activate:
+      on-profile: dev
   servlet:
     multipart:
       enabled: true
@@ -46,4 +48,7 @@ minio:
 
 logging:
   level:
-    root: info
+    root: INFO
+
+frontend:
+  url: ${FRONTEND_URL}

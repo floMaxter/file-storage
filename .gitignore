@@ -20,3 +20,5 @@ logs/
 # Environment variables
 .env*
 !.env.dev
+!.env.local-docker
+!.env.prod-example
