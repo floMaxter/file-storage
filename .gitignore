@@ -21,6 +21,7 @@ logs/
 .env*
 !.env.dev
 !.env.local-docker
+!.env.prod-example
 
 # Frontend
 /frontend/
